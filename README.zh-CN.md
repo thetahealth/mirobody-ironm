@@ -6,7 +6,9 @@
 
 **你的健身 AI 管家：练、吃、睡，它一起看，一起安排。**
 
-开源 · 装在自己电脑上 · 用你自己的大模型
+开源 · 打开网站就能用，也能自己部署 · 用你自己的大模型
+
+**👉 现在就试：<https://test-ironm.mirobody.ai>**（不用安装，手机浏览器也能用）
 
 [English](README.md) · **简体中文**
 
@@ -17,7 +19,7 @@
 ![Docker](https://img.shields.io/badge/docker-compose-2496ED.svg?logo=docker&logoColor=white)
 [![Built on mirobody](https://img.shields.io/badge/built%20on-mirobody-6f42c1.svg)](https://github.com/thetahealth/mirobody)
 
-[功能](#-能做什么) · [截图](#-截图) · [安装](#-快速开始) · [常见问题](#-常见问题)
+[功能](#-能做什么) · [截图](#-截图) · [开始用](#-快速开始) · [常见问题](#-常见问题)
 
 <img src="docs/readme/live.png" width="190" alt="训练记录器" />
 <img src="docs/readme/diet-library.png" width="190" alt="饮食方案库" />
@@ -139,7 +141,18 @@ IronM 把它们放到一起，交给同一个 AI 管家。它看得到你的训�
 
 ## 🚀 快速开始
 
-你需要一台电脑和一个大模型密钥。DeepSeek、通义千问、智谱、豆包、Kimi、OpenAI 都行，兼容 OpenAI 接口的也行；DeepSeek 充几块钱能用很久。
+### 🌐 直接用网站（不用安装）
+
+1. 手机或电脑打开 <https://test-ironm.mirobody.ai>
+2. 用邮箱注册（会收到验证码），再填身高、出生日期、体重
+3. 「我 → 模型和 API」填上你自己的大模型密钥。DeepSeek、通义千问、智谱、豆包、Kimi、OpenAI 都行，兼容 OpenAI 接口的也行；DeepSeek 充几块钱能用很久。不填也能记训练、记饮食、看图鉴，只是不能问 IronM
+4. 跟它说："我想开始练，一周三次，在健身房。"
+
+这是测试版，会经常更新，偶尔有小毛病；特别重要的记录自己也留一份。手机上可以"添加到主屏幕"，像 App 一样打开。
+
+### 🖥️ 自己部署一份（可选）
+
+想让数据只留在自己电脑上，可以自己跑一份。你需要一台电脑和一个大模型密钥。
 
 🐳 **用 Docker**（Windows、Mac、Linux）
 
@@ -177,9 +190,9 @@ IronM 是单 Agent：所有问题都由同一个 AI 回答。问到哪一类，�
 
 **💰 要花钱吗？** IronM 免费。模型费用走你自己的账户，用 DeepSeek 的话问一次大约一分钱。
 
-**📱 手机上能用吗？** 现在在电脑上跑、用浏览器打开，页面按手机屏幕设计。手机 App 的代码在 `app/`（React Native + Expo），还没上架、没出安装包。
+**📱 手机上能用吗？** 能，手机浏览器打开 <https://test-ironm.mirobody.ai> 就行，页面按手机屏幕设计。手机 App 还在做（代码在 `app/`，还没上架）。
 
-**🔒 数据会上传吗？** 不会。数据在你自己电脑的数据库里，敏感内容加密。只有你问的话和拍的照片会发给你自己配置的模型服务商；查天气只发约 1 公里精度的经纬度。
+**🔒 数据存在哪？** 用网站的话，存在测试服务器的数据库里，敏感内容加密；自己部署的话，存在你自己电脑的数据库里。两种都一样：只有你问的话和拍的照片会发给你自己配置的模型服务商，查天气只发约 1 公里精度的经纬度。
 
 **🩺 能代替教练或医生吗？** 不能，建议只供参考。有慢病、怀孕、受伤的，开练前先问医生；运动中胸痛、头晕、呼吸困难，马上停下就医。
 
@@ -192,8 +205,6 @@ make setup                             # Python 环境
 make pg-install pg-init                # 本机 PostgreSQL 18 + pgvector（需要 micromamba）
 make run                               # http://127.0.0.1:18090
 ```
-
-手机 App（`app/`，还在做，没上架）：`cd app && npm install && npm run web` 在浏览器里预览，默认连本机的 18090；打包时用 `EXPO_PUBLIC_API_BASE` 换成服务器地址。
 
 ## 🙏 致谢
 

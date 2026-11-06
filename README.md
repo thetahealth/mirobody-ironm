@@ -6,7 +6,9 @@
 
 **Your AI fitness coach: training, food and sleep, seen together and planned together.**
 
-Open source · Runs on your own computer · Uses your own LLM
+Open source · Use it online or run it yourself · Uses your own LLM
+
+**👉 Try it now: <https://test-ironm.mirobody.ai>** (no install, works in a phone browser)
 
 **English** · [简体中文](README.zh-CN.md)
 
@@ -17,7 +19,7 @@ Open source · Runs on your own computer · Uses your own LLM
 ![Docker](https://img.shields.io/badge/docker-compose-2496ED.svg?logo=docker&logoColor=white)
 [![Built on mirobody](https://img.shields.io/badge/built%20on-mirobody-6f42c1.svg)](https://github.com/thetahealth/mirobody)
 
-[Features](#-what-it-does) · [Screenshots](#-screenshots) · [Install](#-quick-start) · [FAQ](#-faq)
+[Features](#-what-it-does) · [Screenshots](#-screenshots) · [Try it](#-quick-start) · [FAQ](#-faq)
 
 <img src="docs/readme/live.png" width="190" alt="Workout logger" />
 <img src="docs/readme/diet-library.png" width="190" alt="Diet plan library" />
@@ -141,7 +143,18 @@ Five tabs at the bottom: Home, IronM, Library, Records, Me. The mobile app in pr
 
 ## 🚀 Quick start
 
-You need a computer and an LLM API key. DeepSeek, Qwen, Zhipu, Doubao, Kimi and OpenAI all work, as does anything with an OpenAI-compatible API. A few yuan of DeepSeek credit lasts a long time.
+### 🌐 Use it online (nothing to install)
+
+1. Open <https://test-ironm.mirobody.ai> on your phone or computer
+2. Sign up with your email (you'll get a verification code), then enter your height, date of birth and weight
+3. Under "Me → Model and API", enter your own LLM API key. DeepSeek, Qwen, Zhipu, Doubao, Kimi and OpenAI all work, as does anything with an OpenAI-compatible API; a few yuan of DeepSeek credit lasts a long time. Without a key you can still log workouts and meals and browse the libraries; you just can't ask IronM
+4. Tell it: "I want to start training, three times a week, at the gym."
+
+This is a test deployment: it gets updated often and may have rough edges. Keep your own notes of anything you can't afford to lose. On a phone, use "Add to Home Screen" to open it like an app.
+
+### 🖥️ Run it yourself (optional)
+
+If you'd rather keep all your data on your own computer, run your own copy. You need a computer and an LLM API key.
 
 🐳 **With Docker** (Windows, macOS, Linux)
 
@@ -179,9 +192,9 @@ The backend is Python 3.13 + FastAPI + PostgreSQL (pgvector), running as a plugi
 
 **💰 Does it cost anything?** IronM is free. Model costs go through your own account; with DeepSeek, a question costs about one fen (well under one US cent).
 
-**📱 Can I use it on my phone?** For now it runs on a computer and you open it in a browser; the pages are designed for phone screens. The mobile app's code is in `app/` (React Native + Expo); it isn't in the app stores and has no installable build yet.
+**📱 Can I use it on my phone?** Yes: open <https://test-ironm.mirobody.ai> in your phone's browser; the pages are designed for phone screens. A native app is in progress (the code is in `app/`; it hasn't been released yet).
 
-**🔒 Is my data uploaded anywhere?** No. Your data stays in a database on your own computer, with sensitive content encrypted. Only your questions and the photos you take are sent to the model provider you configured. The weather lookup only sends coordinates rounded to about 1 km.
+**🔒 Where is my data?** On the online version, it's stored in the test server's database, with sensitive content encrypted. If you run it yourself, it stays in a database on your own computer. Either way, only your questions and the photos you take are sent to the model provider you configured, and the weather lookup only sends coordinates rounded to about 1 km.
 
 **🩺 Can it replace a coach or doctor?** No. Treat it as advice only. If you have a chronic condition, are pregnant or are injured, check with a doctor before you start. If you get chest pain, dizziness or shortness of breath while exercising, stop and get medical help right away.
 
@@ -194,8 +207,6 @@ make setup                             # Python environment
 make pg-install pg-init                # local PostgreSQL 18 + pgvector (needs micromamba)
 make run                               # http://127.0.0.1:18090
 ```
-
-Mobile app (`app/`, in progress, not released): `cd app && npm install && npm run web` previews it in the browser, connected to the local 18090 by default; set `EXPO_PUBLIC_API_BASE` to your server's address when building.
 
 ## 🙏 Acknowledgements
 

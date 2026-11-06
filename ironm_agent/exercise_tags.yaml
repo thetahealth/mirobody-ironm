@@ -1,0 +1,132 @@
+# 动作库的结构化标注（spec [2026-10-23] §12；§57 起肌群、肌肉、关节都写 body_codes.yaml 里的编码）：
+# 计划检查、替代动作、人体图、恢复用。
+# pattern：动作模式（同一模式的动作可以互相替代）
+#   squat 蹲、hinge 髋铰链、lunge 单腿、bridge 臀桥类、h_push 水平推、v_push 垂直推、h_pull 水平拉、
+#   v_pull 垂直拉、shoulder 肩部小肌群、curl 弯举、extension 臂屈伸、calf 小腿、abduction 髋外展、
+#   core 核心、plyo 跳跃全身、cardio 有氧、stretch 拉伸放松（不计训练组数）
+# groups：算每周组数用的分组（每组记 1 组）。沿用原来的分组：胸、背、肩、核心按部位（part.*），
+#   其余按肌群（group.*）；有氧、拉伸、全身跳跃类不写
+# muscles / assist：人体图和恢复用的细分肌肉（muscle.*），主要练到 / 辅助练到（辅助的每组按半组算）
+# stress：会给哪些关节（joint.*）加负担（这些部位有伤时，计划检查会标出，替代动作会避开）
+# friendly：常用来照顾哪些关节（有伤时替代动作优先选）
+# 编号与 exercises.yaml 对应；内容由 Claude 整理，待审定。
+version: "0.2"
+review: claude_draft
+
+tags:
+  bodyweight-squat: {pattern: squat, groups: [group.quadriceps, group.glutes], stress: [joint.knee], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.adductors]}
+  goblet-squat: {pattern: squat, groups: [group.quadriceps, group.glutes], stress: [joint.knee], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.adductors, muscle.rectus_abdominis]}
+  box-squat: {pattern: squat, groups: [group.quadriceps, group.glutes], friendly: [joint.knee], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.adductors]}
+  back-squat: {pattern: squat, groups: [group.quadriceps, group.glutes], stress: [joint.knee, joint.lumbar], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.adductors, muscle.erector_spinae]}
+  romanian-deadlift: {pattern: hinge, groups: [group.hamstrings, group.glutes], stress: [joint.lumbar], muscles: [muscle.hamstrings, muscle.glute_max], assist: [muscle.erector_spinae, muscle.forearms]}
+  deadlift: {pattern: hinge, groups: [group.glutes, group.hamstrings, part.back], stress: [joint.lumbar], muscles: [muscle.glute_max, muscle.hamstrings, muscle.erector_spinae], assist: [muscle.quadriceps, muscle.upper_traps, muscle.lats, muscle.forearms]}
+  bulgarian-split-squat: {pattern: lunge, groups: [group.quadriceps, group.glutes], stress: [joint.knee], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.adductors, muscle.glute_med]}
+  reverse-lunge: {pattern: lunge, groups: [group.quadriceps, group.glutes], stress: [joint.knee], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.adductors, muscle.glute_med]}
+  glute-bridge: {pattern: bridge, groups: [group.glutes, group.hamstrings], friendly: [joint.knee], muscles: [muscle.glute_max], assist: [muscle.hamstrings]}
+  step-up: {pattern: lunge, groups: [group.quadriceps, group.glutes], stress: [joint.knee], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.glute_med]}
+  calf-raise: {pattern: calf, groups: [group.calves], stress: [joint.ankle], muscles: [muscle.gastrocnemius], assist: [muscle.soleus]}
+  band-lateral-walk: {pattern: abduction, groups: [group.glutes], friendly: [joint.knee, joint.lumbar], muscles: [muscle.glute_med]}
+  leg-press: {pattern: squat, groups: [group.quadriceps, group.glutes], stress: [joint.knee], friendly: [joint.lumbar], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.adductors]}
+  push-up: {pattern: h_push, groups: [part.chest, group.triceps], stress: [joint.shoulder, joint.wrist], muscles: [muscle.pec_major_lower, muscle.triceps], assist: [muscle.pec_major_upper, muscle.anterior_delt, muscle.rectus_abdominis, muscle.serratus_anterior]}
+  dumbbell-bench-press: {pattern: h_push, groups: [part.chest, group.triceps], stress: [joint.shoulder], muscles: [muscle.pec_major_lower, muscle.triceps], assist: [muscle.pec_major_upper, muscle.anterior_delt]}
+  bench-press: {pattern: h_push, groups: [part.chest, group.triceps], stress: [joint.shoulder], muscles: [muscle.pec_major_lower, muscle.triceps], assist: [muscle.pec_major_upper, muscle.anterior_delt]}
+  one-arm-row: {pattern: h_pull, groups: [part.back, group.biceps], friendly: [joint.lumbar], muscles: [muscle.lats, muscle.mid_lower_traps], assist: [muscle.posterior_delt, muscle.biceps, muscle.forearms, muscle.rhomboids]}
+  band-row: {pattern: h_pull, groups: [part.back], friendly: [joint.lumbar, joint.knee], muscles: [muscle.lats, muscle.mid_lower_traps], assist: [muscle.posterior_delt, muscle.biceps, muscle.rhomboids]}
+  pull-up: {pattern: v_pull, groups: [part.back, group.biceps], stress: [joint.shoulder], muscles: [muscle.lats, muscle.biceps], assist: [muscle.mid_lower_traps, muscle.forearms, muscle.rectus_abdominis]}
+  lat-pulldown: {pattern: v_pull, groups: [part.back, group.biceps], stress: [joint.shoulder], muscles: [muscle.lats], assist: [muscle.biceps, muscle.mid_lower_traps]}
+  dumbbell-shoulder-press: {pattern: v_push, groups: [part.shoulder, group.triceps], stress: [joint.shoulder], muscles: [muscle.anterior_delt, muscle.lateral_delt], assist: [muscle.triceps, muscle.upper_traps]}
+  lateral-raise: {pattern: shoulder, groups: [part.shoulder], stress: [joint.shoulder], muscles: [muscle.lateral_delt], assist: [muscle.upper_traps]}
+  band-face-pull: {pattern: shoulder, groups: [part.shoulder, part.back], friendly: [joint.shoulder], muscles: [muscle.posterior_delt, muscle.mid_lower_traps], assist: [muscle.lateral_delt, muscle.rhomboids, muscle.rotator_cuff]}
+  dumbbell-curl: {pattern: curl, groups: [group.biceps], muscles: [muscle.biceps], assist: [muscle.forearms, muscle.brachialis]}
+  bench-dip: {pattern: extension, groups: [group.triceps], stress: [joint.shoulder, joint.wrist], muscles: [muscle.triceps], assist: [muscle.pec_major_lower, muscle.anterior_delt]}
+  plank: {pattern: core, groups: [part.core], muscles: [muscle.rectus_abdominis], assist: [muscle.obliques]}
+  dead-bug: {pattern: core, groups: [part.core], friendly: [joint.lumbar], muscles: [muscle.rectus_abdominis], assist: [muscle.obliques]}
+  side-plank: {pattern: core, groups: [part.core], stress: [joint.shoulder], muscles: [muscle.obliques], assist: [muscle.glute_med, muscle.rectus_abdominis]}
+  bird-dog: {pattern: core, groups: [part.core, group.glutes], friendly: [joint.lumbar], muscles: [muscle.erector_spinae, muscle.glute_max], assist: [muscle.rectus_abdominis, muscle.obliques]}
+  kettlebell-swing: {pattern: hinge, groups: [group.glutes, group.hamstrings], stress: [joint.lumbar], muscles: [muscle.glute_max, muscle.hamstrings], assist: [muscle.erector_spinae, muscle.rectus_abdominis, muscle.forearms]}
+  burpee: {pattern: plyo, stress: [joint.knee, joint.ankle, joint.wrist, joint.shoulder], assist: [muscle.quadriceps, muscle.glute_max, muscle.pec_major_lower, muscle.triceps, muscle.rectus_abdominis]}
+  cycling: {pattern: cardio, friendly: [joint.knee]}
+  brisk-walk: {pattern: cardio}
+  front-squat: {pattern: squat, groups: [group.quadriceps, group.glutes], stress: [joint.knee, joint.lumbar], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.erector_spinae, muscle.rectus_abdominis]}
+  walking-lunge: {pattern: lunge, groups: [group.quadriceps, group.glutes], stress: [joint.knee], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.adductors, muscle.glute_med]}
+  hip-thrust: {pattern: bridge, groups: [group.glutes, group.hamstrings], friendly: [joint.knee], muscles: [muscle.glute_max], assist: [muscle.hamstrings]}
+  sumo-deadlift: {pattern: hinge, groups: [group.glutes, group.quadriceps], stress: [joint.lumbar], friendly: [joint.knee], muscles: [muscle.glute_max, muscle.adductors], assist: [muscle.hamstrings, muscle.quadriceps, muscle.erector_spinae]}
+  single-leg-rdl: {pattern: hinge, groups: [group.hamstrings, group.glutes], stress: [joint.lumbar, joint.ankle], muscles: [muscle.hamstrings, muscle.glute_max], assist: [muscle.glute_med, muscle.erector_spinae]}
+  leg-extension: {pattern: squat, groups: [group.quadriceps], stress: [joint.knee], friendly: [joint.lumbar], muscles: [muscle.quadriceps]}
+  lying-leg-curl: {pattern: hinge, groups: [group.hamstrings], friendly: [joint.lumbar], muscles: [muscle.hamstrings], assist: [muscle.gastrocnemius]}
+  seated-calf-raise: {pattern: calf, groups: [group.calves], stress: [joint.ankle], muscles: [muscle.soleus], assist: [muscle.gastrocnemius]}
+  good-morning: {pattern: hinge, groups: [group.hamstrings, group.glutes], stress: [joint.lumbar], muscles: [muscle.hamstrings, muscle.erector_spinae, muscle.glute_max]}
+  hack-squat: {pattern: squat, groups: [group.quadriceps, group.glutes], stress: [joint.knee], friendly: [joint.lumbar], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.adductors]}
+  side-lunge: {pattern: lunge, groups: [group.quadriceps, group.glutes], stress: [joint.knee], muscles: [muscle.adductors, muscle.glute_max], assist: [muscle.quadriceps, muscle.glute_med]}
+  hip-abduction: {pattern: abduction, groups: [group.glutes], friendly: [joint.knee, joint.lumbar], muscles: [muscle.glute_med]}
+  pistol-squat: {pattern: lunge, groups: [group.quadriceps, group.glutes], stress: [joint.knee, joint.ankle], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.glute_med, muscle.rectus_abdominis]}
+  band-kickback: {pattern: bridge, groups: [group.glutes], friendly: [joint.knee, joint.lumbar], muscles: [muscle.glute_max], assist: [muscle.hamstrings]}
+  incline-dumbbell-press: {pattern: h_push, groups: [part.chest, group.triceps], stress: [joint.shoulder], muscles: [muscle.pec_major_upper, muscle.anterior_delt], assist: [muscle.pec_major_lower, muscle.triceps]}
+  incline-bench-press: {pattern: h_push, groups: [part.chest, group.triceps], stress: [joint.shoulder], muscles: [muscle.pec_major_upper, muscle.anterior_delt], assist: [muscle.pec_major_lower, muscle.triceps]}
+  dumbbell-fly: {pattern: h_push, groups: [part.chest], stress: [joint.shoulder], muscles: [muscle.pec_major_lower], assist: [muscle.pec_major_upper, muscle.anterior_delt]}
+  cable-crossover: {pattern: h_push, groups: [part.chest], muscles: [muscle.pec_major_lower], assist: [muscle.pec_major_upper, muscle.anterior_delt]}
+  machine-chest-press: {pattern: h_push, groups: [part.chest, group.triceps], stress: [joint.shoulder], muscles: [muscle.pec_major_lower, muscle.triceps], assist: [muscle.pec_major_upper, muscle.anterior_delt]}
+  pec-deck: {pattern: h_push, groups: [part.chest], stress: [joint.shoulder], muscles: [muscle.pec_major_lower], assist: [muscle.pec_major_upper]}
+  decline-push-up: {pattern: h_push, groups: [part.chest, group.triceps], stress: [joint.shoulder, joint.wrist], muscles: [muscle.pec_major_upper, muscle.anterior_delt], assist: [muscle.pec_major_lower, muscle.triceps, muscle.rectus_abdominis, muscle.serratus_anterior]}
+  dumbbell-floor-press: {pattern: h_push, groups: [part.chest, group.triceps], friendly: [joint.shoulder], muscles: [muscle.pec_major_lower, muscle.triceps], assist: [muscle.pec_major_upper, muscle.anterior_delt]}
+  parallel-dip: {pattern: h_push, groups: [part.chest, group.triceps], stress: [joint.shoulder], muscles: [muscle.pec_major_lower, muscle.triceps], assist: [muscle.anterior_delt]}
+  barbell-row: {pattern: h_pull, groups: [part.back, group.biceps], stress: [joint.lumbar], muscles: [muscle.lats, muscle.mid_lower_traps], assist: [muscle.posterior_delt, muscle.biceps, muscle.erector_spinae, muscle.rhomboids]}
+  seated-cable-row: {pattern: h_pull, groups: [part.back, group.biceps], friendly: [joint.lumbar], muscles: [muscle.lats, muscle.mid_lower_traps], assist: [muscle.posterior_delt, muscle.biceps, muscle.rhomboids]}
+  inverted-row: {pattern: h_pull, groups: [part.back, group.biceps], friendly: [joint.lumbar], muscles: [muscle.lats, muscle.mid_lower_traps], assist: [muscle.posterior_delt, muscle.biceps, muscle.rectus_abdominis, muscle.rhomboids]}
+  chin-up: {pattern: v_pull, groups: [part.back, group.biceps], stress: [joint.shoulder], muscles: [muscle.lats, muscle.biceps], assist: [muscle.mid_lower_traps, muscle.forearms]}
+  straight-arm-pulldown: {pattern: v_pull, groups: [part.back], muscles: [muscle.lats], assist: [muscle.posterior_delt, muscle.triceps]}
+  chest-supported-row: {pattern: h_pull, groups: [part.back, group.biceps], friendly: [joint.lumbar], muscles: [muscle.lats, muscle.mid_lower_traps, muscle.posterior_delt], assist: [muscle.biceps, muscle.rhomboids]}
+  back-extension: {pattern: hinge, groups: [group.glutes, group.hamstrings], stress: [joint.lumbar], muscles: [muscle.erector_spinae, muscle.glute_max], assist: [muscle.hamstrings]}
+  dumbbell-shrug: {pattern: shoulder, groups: [part.back], stress: [joint.cervical], muscles: [muscle.upper_traps], assist: [muscle.forearms]}
+  overhead-press: {pattern: v_push, groups: [part.shoulder, group.triceps], stress: [joint.shoulder, joint.lumbar], muscles: [muscle.anterior_delt, muscle.lateral_delt], assist: [muscle.triceps, muscle.upper_traps, muscle.rectus_abdominis]}
+  machine-shoulder-press: {pattern: v_push, groups: [part.shoulder, group.triceps], stress: [joint.shoulder], friendly: [joint.lumbar], muscles: [muscle.anterior_delt, muscle.lateral_delt], assist: [muscle.triceps]}
+  front-raise: {pattern: shoulder, groups: [part.shoulder], stress: [joint.shoulder], muscles: [muscle.anterior_delt], assist: [muscle.upper_traps]}
+  rear-delt-fly: {pattern: shoulder, groups: [part.shoulder, part.back], friendly: [joint.shoulder], muscles: [muscle.posterior_delt], assist: [muscle.mid_lower_traps, muscle.rhomboids]}
+  upright-row: {pattern: shoulder, groups: [part.shoulder], stress: [joint.shoulder], muscles: [muscle.lateral_delt, muscle.upper_traps], assist: [muscle.biceps]}
+  cable-lateral-raise: {pattern: shoulder, groups: [part.shoulder], stress: [joint.shoulder], muscles: [muscle.lateral_delt], assist: [muscle.upper_traps]}
+  hammer-curl: {pattern: curl, groups: [group.biceps], muscles: [muscle.brachialis, muscle.biceps, muscle.forearms]}
+  barbell-curl: {pattern: curl, groups: [group.biceps], stress: [joint.wrist], muscles: [muscle.biceps], assist: [muscle.forearms, muscle.brachialis]}
+  preacher-curl: {pattern: curl, groups: [group.biceps], muscles: [muscle.biceps], assist: [muscle.forearms, muscle.brachialis]}
+  cable-curl: {pattern: curl, groups: [group.biceps], muscles: [muscle.biceps], assist: [muscle.forearms, muscle.brachialis]}
+  rope-pushdown: {pattern: extension, groups: [group.triceps], friendly: [joint.shoulder], muscles: [muscle.triceps]}
+  overhead-triceps-extension: {pattern: extension, groups: [group.triceps], stress: [joint.shoulder], muscles: [muscle.triceps]}
+  skull-crusher: {pattern: extension, groups: [group.triceps], stress: [joint.wrist], muscles: [muscle.triceps]}
+  close-grip-push-up: {pattern: h_push, groups: [group.triceps, part.chest], stress: [joint.shoulder, joint.wrist], muscles: [muscle.triceps, muscle.pec_major_lower], assist: [muscle.pec_major_upper, muscle.anterior_delt, muscle.rectus_abdominis, muscle.serratus_anterior]}
+  crunch: {pattern: core, groups: [part.core], stress: [joint.cervical], muscles: [muscle.rectus_abdominis]}
+  lying-leg-raise: {pattern: core, groups: [part.core], stress: [joint.lumbar], muscles: [muscle.rectus_abdominis], assist: [muscle.obliques, muscle.hip_flexors]}
+  russian-twist: {pattern: core, groups: [part.core], stress: [joint.lumbar], muscles: [muscle.obliques], assist: [muscle.rectus_abdominis]}
+  ab-wheel: {pattern: core, groups: [part.core], stress: [joint.lumbar, joint.shoulder], muscles: [muscle.rectus_abdominis], assist: [muscle.lats, muscle.obliques]}
+  pallof-press: {pattern: core, groups: [part.core], friendly: [joint.lumbar], muscles: [muscle.obliques, muscle.rectus_abdominis], assist: [muscle.glute_med]}
+  side-bend: {pattern: core, groups: [part.core], stress: [joint.lumbar], muscles: [muscle.obliques], assist: [muscle.erector_spinae]}
+  plank-shoulder-tap: {pattern: core, groups: [part.core], stress: [joint.shoulder, joint.wrist], muscles: [muscle.rectus_abdominis, muscle.obliques], assist: [muscle.anterior_delt]}
+  wall-ball: {pattern: plyo, stress: [joint.knee, joint.shoulder], muscles: [muscle.quadriceps, muscle.glute_max, muscle.anterior_delt], assist: [muscle.triceps, muscle.rectus_abdominis]}
+  dumbbell-snatch: {pattern: plyo, stress: [joint.lumbar, joint.shoulder], muscles: [muscle.glute_max, muscle.hamstrings, muscle.anterior_delt], assist: [muscle.upper_traps, muscle.quadriceps, muscle.obliques]}
+  high-knees: {pattern: cardio, stress: [joint.knee, joint.ankle]}
+  hip-flexor-stretch: {pattern: stretch, friendly: [joint.lumbar]}
+  hamstring-band-stretch: {pattern: stretch, friendly: [joint.lumbar]}
+  quad-stretch: {pattern: stretch, stress: [joint.knee]}
+  pigeon-stretch: {pattern: stretch, stress: [joint.knee], friendly: [joint.lumbar]}
+  calf-stretch: {pattern: stretch, friendly: [joint.ankle]}
+  knee-to-chest: {pattern: stretch, friendly: [joint.lumbar]}
+  foam-roll-quads: {pattern: stretch, friendly: [joint.knee]}
+  foam-roll-calves: {pattern: stretch, friendly: [joint.ankle]}
+  single-arm-pulldown: {pattern: v_pull, groups: [part.back, group.biceps], stress: [joint.shoulder], muscles: [muscle.lats], assist: [muscle.biceps, muscle.mid_lower_traps]}
+  towel-door-row: {pattern: h_pull, groups: [part.back, group.biceps], muscles: [muscle.lats, muscle.rhomboids], assist: [muscle.biceps, muscle.posterior_delt, muscle.mid_lower_traps]}
+  prone-pulldown: {pattern: v_pull, groups: [part.back], muscles: [muscle.lats, muscle.mid_lower_traps], assist: [muscle.erector_spinae, muscle.posterior_delt]}
+  prone-y-raise: {pattern: shoulder, groups: [part.shoulder, part.back], friendly: [joint.shoulder], muscles: [muscle.posterior_delt, muscle.mid_lower_traps], assist: [muscle.rhomboids]}
+  towel-curl: {pattern: curl, groups: [group.biceps], muscles: [muscle.biceps], assist: [muscle.brachialis, muscle.forearms]}
+  # 第三批（§144）
+  treadmill-run: {pattern: cardio, stress: [joint.knee, joint.ankle]}
+  elliptical: {pattern: cardio, friendly: [joint.knee]}
+  rowing-machine: {pattern: cardio, stress: [joint.lumbar]}
+  jump-rope: {pattern: cardio, stress: [joint.knee, joint.ankle]}
+  jumping-jack: {pattern: cardio, stress: [joint.knee, joint.ankle]}
+  mountain-climber: {pattern: plyo, stress: [joint.wrist, joint.shoulder], muscles: [muscle.rectus_abdominis, muscle.hip_flexors], assist: [muscle.anterior_delt, muscle.quadriceps]}
+  hanging-leg-raise: {pattern: core, groups: [part.core], stress: [joint.shoulder, joint.lumbar], muscles: [muscle.rectus_abdominis, muscle.hip_flexors], assist: [muscle.obliques, muscle.forearms]}
+  smith-squat: {pattern: squat, groups: [group.quadriceps, group.glutes], stress: [joint.knee], muscles: [muscle.quadriceps, muscle.glute_max], assist: [muscle.adductors]}
+  seated-leg-curl: {pattern: hinge, groups: [group.hamstrings], friendly: [joint.lumbar], muscles: [muscle.hamstrings], assist: [muscle.gastrocnemius]}
+  t-bar-row: {pattern: h_pull, groups: [part.back, group.biceps], stress: [joint.lumbar], muscles: [muscle.lats, muscle.mid_lower_traps], assist: [muscle.rhomboids, muscle.posterior_delt, muscle.biceps, muscle.erector_spinae]}
+  reverse-pec-deck: {pattern: shoulder, groups: [part.shoulder, part.back], friendly: [joint.shoulder, joint.lumbar], muscles: [muscle.posterior_delt], assist: [muscle.mid_lower_traps, muscle.rhomboids]}
+  sumo-squat: {pattern: squat, groups: [group.quadriceps, group.glutes], stress: [joint.knee, joint.hip], muscles: [muscle.glute_max, muscle.adductors, muscle.quadriceps]}
+  assisted-pull-up: {pattern: v_pull, groups: [part.back, group.biceps], muscles: [muscle.lats, muscle.biceps], assist: [muscle.mid_lower_traps, muscle.forearms]}
+  triceps-kickback: {pattern: extension, groups: [group.triceps], muscles: [muscle.triceps], assist: [muscle.posterior_delt]}

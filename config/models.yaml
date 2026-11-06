@@ -1,0 +1,47 @@
+# 每个环节用哪个模型。密钥只写环境变量的名字，值放在 .env，不进仓库。
+# 主模型 deepseek-flash（不开思考）沿用 IronM 2026-10-20 的选型结论。
+turn_budget: 20 # 一轮最多调用模型的次数，超过后停止查询，用已有结果作答
+
+stages:
+  route: # 主教练：理解与调度
+    base_url: https://api.deepseek.com
+    model: deepseek-flash
+    api_key_env: DEEPSEEK_API_KEY
+    extra_body: {thinking: {type: disabled}}
+    timeout_s: 30
+    max_retries: 1
+  expert: # 专业 Agent 作答（含查询）
+    base_url: https://api.deepseek.com
+    model: deepseek-flash
+    api_key_env: DEEPSEEK_API_KEY
+    extra_body: {thinking: {type: disabled}}
+    timeout_s: 30 # §165：单次最长等 30 秒（中位 2.4 秒）
+    max_retries: 1
+  compose: # 主教练：整合与直接回答
+    base_url: https://api.deepseek.com
+    model: deepseek-flash
+    api_key_env: DEEPSEEK_API_KEY
+    extra_body: {thinking: {type: disabled}}
+    timeout_s: 45
+    max_retries: 1
+  coach: # 管家的后台决策：到期复查（§129）、练完定下次（§132）；不写时沿用 expert（§142）。11-03 项目负责人定用 v4-pro（回放更稳）
+    base_url: https://api.deepseek.com
+    model: deepseek-v4-pro
+    api_key_env: DEEPSEEK_API_KEY
+    extra_body: {thinking: {type: disabled}}
+    timeout_s: 45
+    max_retries: 1
+  vision: # 认器械看图（§149）；不写时沿用 expert。deepseek-flash 能看图（11-03 实测）
+    base_url: https://api.deepseek.com
+    model: deepseek-flash
+    api_key_env: DEEPSEEK_API_KEY
+    extra_body: {thinking: {type: disabled}}
+    timeout_s: 30
+    max_retries: 1
+  memory: # 记忆提取（回答发出后在后台进行，不占这一轮的次数）
+    base_url: https://api.deepseek.com
+    model: deepseek-flash
+    api_key_env: DEEPSEEK_API_KEY
+    extra_body: {thinking: {type: disabled}}
+    timeout_s: 30
+    max_retries: 1

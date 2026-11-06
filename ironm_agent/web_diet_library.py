@@ -12,6 +12,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
 from ironm_agent.diet_library import (
+    SET_NAMES,
     SETS,
     DietPlan,
     by_id,
@@ -118,17 +119,69 @@ async def get_library_plan(plan_id: str, user_id: str = Depends(_verify())) -> d
     }
 
 
+def plan_raw(p: DietPlan, kcal: float | None) -> dict[str, Any]:
+    """按热量目标算好每顿几份，写成饮食计划的样子（工作日、周末各四顿）。"""
+    raw: dict[str, Any] = {}
+    for s in SETS:
+        servings = scaled(p, s, kcal)
+        raw[s] = {k: SlotRef(type=p.days[s][k].type, id=p.days[s][k].id, servings=servings[k]).model_dump(mode="json")
+                  for k in SLOTS}  # fmt: skip
+    return raw
+
+
+async def apply_raw(user_id: str, raw: dict[str, Any], store: DietStore, *, applied: str, name: str,
+                    draft: str = "") -> None:  # fmt: skip
+    """换成这份计划：先存现在的（存不上就不换），再写新的。draft 是对话里那张卡片（撤销时核对，§190）；
+    applied 是方案库编号，按他情况排的写 custom（§192）。"""
+    current = await store.get(user_id, "plan", "plan") or {}
+    await store.put(user_id, "plan", BACKUP, {"plan": current, "applied": applied, "name": name, "draft": draft})
+    await store.put(user_id, "plan", "plan", raw)
+    _log.info("diet plan applied: plan=%s card=%s", applied, bool(draft))
+
+
+async def apply_plan(user_id: str, p: DietPlan, store: DietStore, kcal: float | None, draft: str = "") -> None:
+    """换成方案库里这份：按热量目标算好份数再换。"""
+    await apply_raw(user_id, plan_raw(p, kcal), store, applied=p.id, name=p.name, draft=draft)
+
+
+async def restore_plan(user_id: str, store: DietStore, draft: str = "") -> bool:
+    """放回换之前的计划，只能一次；给了 draft 时只撤销那张卡片换的（之后又换过就不撤）。"""
+    backup = await store.get(user_id, "plan", BACKUP)
+    if backup is None or (draft and backup.get("draft") != draft):
+        return False
+    await store.put(user_id, "plan", "plan", backup.get("plan") or {})
+    await store.delete(user_id, "plan", BACKUP)
+    _log.info("diet library undone")
+    return True
+
+
+async def applied_name(user_id: str, store: DietStore) -> str:
+    """最近换上、还没撤销的那份叫什么（档案里写名字用，§190、§192）；没有时为空。"""
+    backup = await store.get(user_id, "plan", BACKUP)
+    if not backup:
+        return ""
+    p = by_id(str(backup.get("applied") or ""))
+    return str(backup.get("name") or (p.name if p is not None else ""))
+
+
+def preview_lines(p: DietPlan, kcal: float | None) -> list[str]:
+    """换饮食方案卡片上的几行：工作日、周末各吃什么、一天合计（§190）。"""
+    out = []
+    for s in SETS:
+        meals = day_meals(p, s, scaled(p, s, kcal))
+        tot = day_total(meals)
+        names = "、".join(f"{k}{m.name}" for k, m in meals.items())
+        out.append(f"{SET_NAMES[s]}：{names}；一天约 {round(tot.kcal)} 千卡、蛋白质 {round(tot.protein_g)} 克")
+    return out
+
+
 @router.post("/iron/api/diet/library/undo")
 async def undo_library(
     user_id: str = Depends(_verify()), store: DietStore = KITCHEN, meals: MealStore = MEALS
 ) -> dict[str, Any]:
     """把套用前的饮食计划放回去；只能撤销一次。"""
-    backup = await store.get(user_id, "plan", BACKUP)
-    if backup is None:
+    if not await restore_plan(user_id, store):
         raise HTTPException(404, "没有可以撤销的饮食计划：还没套用过方案，或者已经撤销过了")
-    await store.put(user_id, "plan", "plan", backup.get("plan") or {})
-    await store.delete(user_id, "plan", BACKUP)
-    _log.info("diet library undone")
     return {**(await get_diet_plan(user_id, store, meals)), "undone": True}
 
 
@@ -142,15 +195,5 @@ async def apply_library(
     """用这份当他的饮食计划：先存现在的，再按他的热量目标写进工作日、周末四顿。"""
     p = _found(plan_id)
     target = await _target(user_id)
-    current = await store.get(user_id, "plan", "plan") or {}
-    await store.put(
-        user_id, "plan", BACKUP, {"plan": current, "applied": p.id}
-    )  # 先存，存不上就不换
-    raw: dict[str, Any] = {}
-    for s in SETS:
-        servings = scaled(p, s, target.kcal if target else None)
-        raw[s] = {k: SlotRef(type=p.days[s][k].type, id=p.days[s][k].id, servings=servings[k]).model_dump(mode="json")
-                  for k in SLOTS}  # fmt: skip
-    await store.put(user_id, "plan", "plan", raw)
-    _log.info("diet library applied: plan=%s scaled=%s", p.id, bool(target))
+    await apply_plan(user_id, p, store, target.kcal if target else None)
     return {**(await get_diet_plan(user_id, store, meals)), "applied": {"id": p.id, "name": p.name}}

@@ -6,6 +6,7 @@
 # 可选设置写在仓库目录的 .env 里（格式见 .env.example 的"Docker"一节）：
 #   IRONM_PORT=18200              换网页端口
 #   IRONM_IMAGES=0                不下配图
+#   IRONM_VOICE=0                 不下语音模型（问答不显示话筒）
 #   DOCKER_MIRROR=docker.1ms.run/ 国内下镜像慢时的加速前缀（末尾的 / 要带）
 #   PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/   国内 Python 包源
 #   APT_MIRROR=mirrors.aliyun.com 国内系统包源
@@ -68,6 +69,8 @@ services:
     environment:
       IRONM_PORT: ${IRONM_PORT:-18090}
       IRONM_IMAGES: ${IRONM_IMAGES:-1}
+      IRONM_VOICE: ${IRONM_VOICE:-1}
+      IRONM_ASR_MODEL_URL:
       EMAIL_SMTP_HOST:
       EMAIL_SMTP_PORT:
       EMAIL_SMTP_USER:

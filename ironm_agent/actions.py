@@ -345,7 +345,7 @@ LOG_BODY_SCHEMA: dict[str, Any] = {
     "function": {
         "name": LOG_BODY,
         "description": (
-            "他说了自己量的体重、体脂率、腰围、静息心率、血压时调用：写进健康记录（数据页能改、删）。"
+            "他说了自己量的体重、体脂率、腰围、臀围、胸围、上臂围、大腿围、静息心率、血压时调用：写进健康记录（数据页能改、删）。"
             "数只能是他这句话里说的，不换算、不猜；问句、假设、别人的不记。一个数调用一次。"
         ),
         "parameters": {
@@ -354,8 +354,8 @@ LOG_BODY_SCHEMA: dict[str, Any] = {
             "properties": {
                 "kind": {
                     "type": "string",
-                    "enum": ["weight", "body_fat", "waist", "resting_hr", "systolic", "diastolic"],
-                    "description": "体重（公斤）、体脂率（%）、腰围（厘米）、静息心率、收缩压、舒张压",
+                    "enum": ["weight", "body_fat", "waist", "hip", "chest", "arm", "thigh", "resting_hr", "systolic", "diastolic"],
+                    "description": "体重（公斤）、体脂率（%）、腰围、臀围、胸围、上臂围、大腿围（厘米）、静息心率、收缩压、舒张压",
                 },
                 "value": {"type": "number", "description": "他原话里的数（说的是斤就写斤的数）"},
                 "unit": {

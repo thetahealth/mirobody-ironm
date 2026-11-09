@@ -90,7 +90,7 @@ Real conversations from a two-week simulation test. The model is DeepSeek and th
 - ⏱️ **Workout logger**: log set by set, tap a number to fill it in, rest timer between sets, a share card when you finish
 - 📈 **Next-session targets**: how much to lift next time on each exercise, based on this session's log
 - 🏃 **Cardio by calories**: want to burn an extra N kcal a week? It works out from your body weight how long to walk, jog or cycle, and puts it in your plan
-- 📖 **Exercise library**: 115 exercises with images, animations and alternatives; 34 kinds of equipment, recognised from a photo
+- 📖 **Exercise library**: 220 exercises, about half with images and animations, all with alternatives; 34 kinds of equipment, recognised from a photo
 
 ### 🥗 Food
 - 📸 **Log a meal with a photo or a sentence**: snap a photo or say "had a bowl of beef noodles for lunch". Calories come from the food database, not from a model's guess
@@ -137,7 +137,7 @@ Five tabs at the bottom: Home, IronM, Library, Records, Me. The mobile app in pr
 <td align="center"><img src="docs/readme/live.png" width="200" /><br/><sub><b>Workout logger</b><br/>Tap a number to fill it in, rest timer between sets</sub></td>
 <td align="center"><img src="docs/readme/diet-library.png" width="200" /><br/><sub><b>Diet plan library</b><br/>16 full-day plans, apply in one tap</sub></td>
 <td align="center"><img src="docs/readme/diet-plan.png" width="200" /><br/><sub><b>Plan details</b><br/>Who it's for, how calories and macros are set</sub></td>
-<td align="center"><img src="docs/readme/atlas-moves.png" width="200" /><br/><sub><b>Exercise library</b><br/>115 exercises with images and animations</sub></td>
+<td align="center"><img src="docs/readme/atlas-moves.png" width="200" /><br/><sub><b>Exercise library</b><br/>220 exercises, about half with images and animations</sub></td>
 </tr>
 </table>
 

@@ -88,7 +88,7 @@ IronM 把它们放到一起，交给同一个 AI 管家。它看得到你的训�
 - ⏱️ **训练记录器**：一组一组记，点数字直接填，组间休息倒计时，练完出分享卡
 - 📈 **下次目标**：每个动作下次练多重，按这次的记录定
 - 🏃 **有氧按热量排**：想每周多消耗多少千卡，按你的体重算出快走、慢跑、骑车各要练多久，写进计划
-- 📖 **动作图鉴**：115 个动作，带配图、动图和替代动作；34 种器械，拍一张就能认
+- 📖 **动作图鉴**：220 个动作，一半左右带配图和动图，都有替代动作；34 种器械，拍一张就能认
 
 ### 🥗 饮食
 - 📸 **拍照 / 一句话记餐**：拍张照或说一句"中午吃了一碗牛肉面"就记下；热量按食物库算，不让模型瞎估
@@ -135,7 +135,7 @@ IronM 把它们放到一起，交给同一个 AI 管家。它看得到你的训�
 <td align="center"><img src="docs/readme/live.png" width="200" /><br/><sub><b>训练记录器</b><br/>点数字直接填，组间休息倒计时</sub></td>
 <td align="center"><img src="docs/readme/diet-library.png" width="200" /><br/><sub><b>饮食方案库</b><br/>16 份整天的吃法，一键套用</sub></td>
 <td align="center"><img src="docs/readme/diet-plan.png" width="200" /><br/><sub><b>方案详情</b><br/>适合谁、热量和营养素怎么定</sub></td>
-<td align="center"><img src="docs/readme/atlas-moves.png" width="200" /><br/><sub><b>动作图鉴</b><br/>115 个动作，配图和动图</sub></td>
+<td align="center"><img src="docs/readme/atlas-moves.png" width="200" /><br/><sub><b>动作图鉴</b><br/>220 个动作，一半左右有配图和动图</sub></td>
 </tr>
 </table>
 

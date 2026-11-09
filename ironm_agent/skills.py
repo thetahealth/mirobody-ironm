@@ -21,6 +21,8 @@ from ironm_agent.yamlfile import load_yaml
 
 SKILLS_PATH = Path(__file__).with_name("skills.yaml")
 SKILLS_DIR = Path(__file__).with_name("skills")  # 一份一个文件夹的新规程（spec [2026-10-23] §76）
+# 只在页面功能里用的规程（§201 视频出方案）：写法和文件夹规程一样，但不进对话的目录和路由
+PAGE_SKILLS_DIR = Path(__file__).with_name("page_skills")
 type Trigger = Literal["injury", "plan", "log", "image", "move", "lab", "metric", "new"]
 TRIGGER_BONUS = 2  # 这一轮的情况对得上时加的分（比问题里一个说法对得上更重要）
 
@@ -234,6 +236,20 @@ def skills(path: Path = SKILLS_PATH, root: Path = SKILLS_DIR) -> tuple[Skill, ..
         if unknown:
             raise ValueError(f"{x.id} 的 not_for 点到的规程不存在：{unknown}")
     return data.skills
+
+
+@cache
+def page_skill(skill_id: str, root: Path = PAGE_SKILLS_DIR) -> Skill:
+    """页面功能用的规程（§201）：和对话里的文件夹规程同一种写法、同样校验，不进 skills() 的目录。"""
+    for x in folder_skills(root):
+        if x.get("id") == skill_id:
+            if "domain" in x:
+                x["role"] = x.pop("domain")
+            got = Skill.model_validate(x, strict=False)
+            if not got.card or not got.brief:
+                raise ValueError(f"{skill_id} 要有步骤卡和 brief")
+            return got
+    raise KeyError(skill_id)
 
 
 def prompt_of(chosen: Sequence[Skill], flags: Collection[str] = ()) -> str:

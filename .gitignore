@@ -30,5 +30,6 @@ scripts/fetch_exercise_images.py
 scripts/fetch_food_images.py
 scripts/fetch_rank_images.py
 scripts/fetch_stock_images.py
+scripts/fetch_local_gifs.py
 scripts/setup_mail.sh
 deploy/mirobody.md

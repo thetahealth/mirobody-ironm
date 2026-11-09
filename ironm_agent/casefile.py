@@ -323,6 +323,8 @@ class CaseFile:
     meals_id: str = ""
     diet_plan: str = ""  # 现在的饮食计划（§190）：工作日、周末一天合计，最近套用的方案；读不到时为空
     diet_plan_id: str = ""
+    badges: str = ""  # 最近 7 天新拿到的勋章（§196）；没有时为空
+    badges_id: str = ""
 
     def text(self, *, calcs: bool = True) -> str:
         lines = [
@@ -345,6 +347,8 @@ class CaseFile:
             )
         if self.diet_plan:  # 和热量目标对不上（比如改过目标）时，可以出换饮食方案的卡片（§190）
             lines.append(f"- 饮食计划（首页\"今天吃什么\"照这个排）〔{self.diet_plan_id}〕：{self.diet_plan}")
+        if self.badges:  # §196：可以顺口提一句，不催、不说还差什么
+            lines.append(f"- 最近 7 天新拿到的勋章（他问到或顺着话题时可以轻轻提一句，不用每次都说）〔{self.badges_id}〕：{self.badges}")
         if self.weather:
             lines.append(f"- {self.weather}（安排户外运动、饮食和补水时要照顾到）")
         if self.limits:
@@ -408,6 +412,7 @@ def build(
     sore: Sequence[str] = (),
     meals: str = "",
     diet_plan: str = "",
+    badges: str = "",
 ) -> CaseFile:
     """insights：指标解读（§84），每条是 (给角色看的一句话, 追问依据时讲的详细说法)。
     sore：最近 3 天说过疼的部位（§158），和记着的伤病一样避开。"""
@@ -458,6 +463,9 @@ def build(
     diet_plan_id = f"C{len(metrics) + 3 + len(found) + bool(meals)}" if diet_plan else ""
     if diet_plan:
         calcs[diet_plan_id] = f"饮食计划：{diet_plan}"
+    badges_id = f"C{len(metrics) + 3 + len(found) + bool(meals) + bool(diet_plan)}" if badges else ""
+    if badges:
+        calcs[badges_id] = f"最近新拿到的勋章：{badges}"
     return CaseFile(
         basics=basics,
         limits=limits,
@@ -479,6 +487,8 @@ def build(
         meals_id=meals_id,
         diet_plan=diet_plan,
         diet_plan_id=diet_plan_id,
+        badges=badges,
+        badges_id=badges_id,
     )
 
 

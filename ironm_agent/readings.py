@@ -31,6 +31,10 @@ KINDS: dict[str, Kind] = {
     "weight": Kind("体重", ("体重", "bodyMasss", "Body weight"), "kg", 20, 300, "公斤"),
     "body_fat": Kind("体脂率", ("体脂率", "bodyFatPercentages"), "%", 3, 70, "%"),
     "waist": Kind("腰围", ("waistCircumferences",), "cm", 40, 200, "厘米"),
+    "hip": Kind("臀围", ("臀围", "hipCircumferences"), "cm", 50, 200, "厘米"),  # §196 新加的四项围度
+    "chest": Kind("胸围", ("胸围", "chestCircumferences"), "cm", 50, 200, "厘米"),
+    "arm": Kind("上臂围", ("上臂围", "upperArmCircumferences"), "cm", 15, 70, "厘米"),
+    "thigh": Kind("大腿围", ("大腿围", "thighCircumferences"), "cm", 25, 100, "厘米"),
     "resting_hr": Kind("静息心率", ("静息心率", "restingHeartRates"), "/min", 30, 150, "次/分"),
     "sleep": Kind("睡眠时长", ("sleepDuration",), "h", 0.5, 16, "小时"),
     "systolic": Kind("收缩压", ("收缩压", "systolicPressures"), "mm[Hg]", 60, 260, "mmHg"),

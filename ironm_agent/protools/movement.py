@@ -128,8 +128,16 @@ def _base(name: str) -> str:
     return base
 
 
+# 常见叫法 → 动作库里的名字：名字里看不出来的（"骑车"认不到"骑行（动感单车）"，记录器就会让人填重量，§196 复核）
+SAYS: dict[str, str] = {
+    "动感单车": "骑行（动感单车）", "健身车": "骑行（动感单车）", "骑自行车": "骑行（动感单车）", "自行车": "骑行（动感单车）",
+    "骑车": "骑行（动感单车）", "单车": "骑行（动感单车）",
+    "散步": "快走", "步行": "快走", "健走": "快走", "走路": "快走",
+}  # fmt: skip
+
+
 def find(name: str) -> Move | None:
-    """按名字找动作：先全名，再看名字里包含了哪个动作的全名（取最长的），最后按去掉前缀的名字。"""
+    """按名字找动作：先全名，再看名字里包含了哪个动作的全名（取最长的），再看常见叫法，最后按去掉前缀的名字。"""
     text = _BRACKET.sub("", name).strip()
     if not text:
         return None
@@ -140,6 +148,9 @@ def find(name: str) -> Move | None:
     contained = [m for m in all_moves if _BRACKET.sub("", m.name) in text]
     if contained:
         return max(contained, key=lambda m: len(_BRACKET.sub("", m.name)))
+    said = next((v for k, v in sorted(SAYS.items(), key=lambda kv: -len(kv[0])) if k in text), None)
+    if said is not None:
+        return next((m for m in all_moves if m.name == said), None)
     for m in all_moves:
         base = _base(m.name)
         if len(base) >= 2 and (base in text or text in base):

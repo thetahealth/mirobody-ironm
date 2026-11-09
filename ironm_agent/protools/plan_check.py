@@ -29,6 +29,8 @@ NOVICE_SETS = 3
 WARMUP_MIN = 10
 COMPOUND_SET_MIN = 3.5
 ACCESSORY_SET_MIN = 2.5
+# 循环、跟练（备注写了"循环"）：动作之间几乎不休息，一组约 1 分钟加换动作，按 1.5 分钟算（§201 视频出方案的跟练视频）
+CIRCUIT_SET_MIN = 1.5
 SLACK = 1.1  # 估算时长超出可用时间 10% 以上才算问题
 MAJOR = (
     "胸",
@@ -42,10 +44,18 @@ _LIMITED = re.compile(r"限制|控制|不疼|无痛|减小幅度|小幅度|箱|�
 _MINUTES = re.compile(r"(\d+)\s*分钟")
 
 
+_SECONDS = re.compile(r"(\d+)\s*秒")
+
+
 def _minutes(item: PlanItem, move: Move | None) -> float:
+    if "循环" in item.note:
+        return item.sets * CIRCUIT_SET_MIN
     if move is not None and move.tag.pattern == "cardio":
         m = _MINUTES.search(item.reps)
-        return float(m.group(1)) if m else 15.0
+        if m:
+            return float(m.group(1))
+        sec = _SECONDS.search(item.reps)  # "30 秒"按组算（每组做的时间加 1 分钟歇），不再一律当 15 分钟（§201）
+        return item.sets * (int(sec.group(1)) / 60 + 1) if sec else 15.0
     per = COMPOUND_SET_MIN if move is None or move.compound else ACCESSORY_SET_MIN
     return item.sets * per
 

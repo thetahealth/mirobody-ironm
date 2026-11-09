@@ -3,6 +3,7 @@
 #
 #   scripts/start.sh               第一次：装环境和数据库、生成 .env、下配图、启动；以后：直接启动
 #   scripts/start.sh --no-images   不下配图（以后再跑 scripts/fetch_images.py 补）
+#   scripts/start.sh --no-voice    不下语音模型（问答不显示话筒；以后再跑 scripts/fetch_asr_model.py 补）
 #
 # 换端口：IRONM_PORT=18200 IRONM_PG_PORT=55500 scripts/start.sh（默认 18090、55432，都只听本机）
 # 按 Ctrl+C 停：服务和这次起的数据库一起停。
@@ -14,10 +15,12 @@ cd "$ROOT"
 PORT="${IRONM_PORT:-18090}"
 export IRONM_PG_PORT="${IRONM_PG_PORT:-55432}"
 IMAGES=1
+VOICE=1
 for a in "$@"; do
   case "$a" in
     --no-images) IMAGES=0 ;;
-    -h|--help) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --no-voice) VOICE=0 ;;
+    -h|--help) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "不认识的参数：$a（只有 --no-images）" >&2; exit 2 ;;
   esac
 done
@@ -119,6 +122,11 @@ if [ "$IMAGES" = 1 ] && [ ! -f data/.images-done ]; then
   .venv/bin/python scripts/fetch_images.py
   .venv/bin/python scripts/make_exercise_gifs.py >/dev/null 2>&1 || echo "动作动图没合成，不影响使用"
   touch data/.images-done
+fi
+
+# 问答语音输入的语音模型（§199，约 163 MB）：在后台下，下好之前问答不显示话筒，不耽误启动
+if [ "$VOICE" = 1 ]; then
+  .venv/bin/python scripts/fetch_asr_model.py > data/fetch-asr.log 2>&1 &
 fi
 
 # ---- 6. 启动 ----

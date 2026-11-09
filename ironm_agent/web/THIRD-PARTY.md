@@ -70,3 +70,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## 语音模型 SenseVoice-Small（问答语音输入，spec §199）
+
+问答里说话转文字用的是 **SenseVoice-Small**（作者：阿里巴巴通义实验室 FunAudioLLM 团队，https://github.com/FunAudioLLM/SenseVoice ），按 **FunASR 模型开源协议 1.1**（https://github.com/modelscope/FunASR/blob/main/MODEL_LICENSE ）使用：可免费使用、复制、修改、分享，须注明出处和作者、保留模型名。用的是 k2-fsa/sherpa-onnx 转好的 int8 版（`sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17`），由 `scripts/fetch_asr_model.py` 下载到服务器的数据目录，不放进仓库。
+
+运行模型的 sherpa-onnx（https://github.com/k2-fsa/sherpa-onnx ）是 Apache License 2.0。
+
+## PyAV 和它带的 FFmpeg 库（视频转文字，spec §200）
+
+从视频里取声音用 PyAV（https://github.com/PyAV-Org/PyAV ，BSD 3-Clause License）。它的安装包自带 FFmpeg 的库（https://ffmpeg.org ，LGPL 2.1 或以后版本），按 LGPL 以动态库的形式使用、没有改动；源码和许可见上面两个项目。

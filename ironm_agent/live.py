@@ -181,6 +181,14 @@ def _move(name: str) -> Any:
     return next((x for x in library().exercises if x.name == name), None)
 
 
+def _said(name: str) -> Any:
+    """常见叫法对应的动作（"骑车"是骑行）：只用来判断记什么（有氧只记时长、不让填重量，§196 复核），不放宽能加哪些动作。"""
+    from ironm_agent.protools.movement import SAYS
+
+    real = next((v for k, v in sorted(SAYS.items(), key=lambda kv: -len(kv[0])) if k in name), None)
+    return _move(real) if real else None
+
+
 def rest_of(name: str, rests: dict[str, int]) -> int:
     """组间休息：改过的照用；杠铃动作 120 秒，其余 90 秒。"""
     if name in rests:
@@ -195,12 +203,14 @@ def new_item(
     logs: Sequence[WorkoutLog],
     rests: dict[str, int],
     decided: Mapping[str, Decided] | None = None,
+    mode: str | None = None,
 ) -> LiveItem:
     """一个动作：重量和次数按管家定的下次目标预先填好；管家没定（或已经不适用）的逐组照上次，
-    没做过的按计划写组数；都没有时空着（§163 需求 6：不按规则算进阶）。"""
-    move = _move(name)
-    cardio = bool(move is not None and move.part == "有氧")
-    timed = bool(move is not None and move.timed) or cardio
+    没做过的按计划写组数；都没有时空着（§163 需求 6：不按规则算进阶）。
+    mode：我的动作（§198）自己选的记法（strength / timed / cardio），有就按它。"""
+    move = _move(name) or _said(name)
+    cardio = mode == "cardio" if mode else bool(move is not None and move.part == "有氧")
+    timed = (mode == "timed" if mode else bool(move is not None and move.timed)) or cardio
     planned = (
         next((x for s in sorted(plan.sessions, key=lambda s: s.day != date.today().isoweekday())
               for x in s.items if x.exercise == name), None)  # 今天那一次排前面（复核 11-05）

@@ -53,8 +53,21 @@ def food_json(f: Food) -> dict[str, Any]:
 
 
 @router.get("/iron/api/foods")
-async def get_foods(q: str = "", user_id: str = Depends(_verify())) -> dict[str, Any]:
-    return {"foods": [food_json(f) for f in search(q[:20])]}
+async def get_foods(q: str = "", user_id: str = Depends(_verify()), kitchen: Any = KITCHEN) -> dict[str, Any]:
+    """我的食物（§198）排在最前，标 mine；再是食物库。"""
+    q = q.strip()[:20]
+    mine = [f.shown() for f in await _my_foods(kitchen, user_id) if q and q in f.name]
+    return {"foods": [*mine, *(food_json(f) for f in search(q))]}
+
+
+async def _my_foods(kitchen: Any, user_id: str) -> list[Any]:
+    from ironm_agent.mine import FOOD, load
+
+    try:
+        return await load(kitchen, user_id, FOOD)
+    except Exception as e:
+        _log.warning("my foods unavailable: error_type=%s", type(e).__name__)
+        return []
 
 
 class LineIn(BaseModel):
@@ -74,18 +87,38 @@ class FromFoodsIn(BaseModel):
     foods: list[LineIn] = Field(min_length=1, max_length=12)
 
 
-def _from_lib(x: LineIn) -> FoodLine:
+def _from_lib(x: LineIn, mine: dict[str, Any] | None = None) -> FoodLine:
+    """食物库的按库算；我的食物（§198）按自己填的每 100 克算（存成估值那样，改份量照样能改）。"""
+    own = (mine or {}).get(x.food_id or "")
+    if own is not None:  # 不按名字到食物库里找（"我的蛋白粉"会被认成库里的乳清蛋白粉）
+        return own_line(own.name, x.grams, own.macros())
     if not x.food_id or x.food_id not in by_id():
         raise HTTPException(422, f"食物库里没有「{x.name or x.food_id}」")
     return food_line(x.name, x.grams, x.oil, food_id=x.food_id)
 
 
+def own_line(name: str, grams: float, per100: Any) -> FoodLine:
+    """按每 100 克的数直接算一样（我的食物；改份量时沿用原来的估值也走这里）。"""
+    g, k = round(float(grams)), round(float(grams)) / 100
+    m = per100.model_copy(update={f: getattr(per100, f) * k for f in ("kcal", "protein_g", "carbs_g", "fat_g")})
+    return FoodLine(name=name[:30], grams=g, est100=per100, macros=m.rounded())
+
+
+async def _mine_by_id(kitchen: Any, user_id: str, lines: list[LineIn]) -> dict[str, Any]:
+    from ironm_agent.mine import FOOD_PREFIX
+
+    if not any((x.food_id or "").startswith(FOOD_PREFIX) for x in lines):
+        return {}
+    return {f.id: f for f in await _my_foods(kitchen, user_id)}
+
+
 @router.post("/iron/api/meals/foods")
 async def add_from_foods(
-    body: FromFoodsIn, user_id: str = Depends(_verify()), store: MealStore = MEALS
+    body: FromFoodsIn, user_id: str = Depends(_verify()), store: MealStore = MEALS, kitchen: Any = KITCHEN
 ) -> dict[str, Any]:
-    """不拍不写，直接从食物库选着记一餐（§118 需求 3）。"""
-    lines = [_from_lib(x) for x in body.foods]
+    """不拍不写，直接从食物库选着记一餐（§118 需求 3）；我的食物也能选（§198）。"""
+    mine = await _mine_by_id(kitchen, user_id, body.foods)
+    lines = [_from_lib(x, mine) for x in body.foods]
     name = body.name.strip() or "、".join(re.sub(r"[（(].*?[)）]", "", x.name) for x in lines)[:40]
     meal = meal_from(_kind(body.kind), name, lines, estimated=False, note="按食物库算")
     return await _save_meal(store, user_id, meal)
@@ -100,7 +133,7 @@ class EditIn(BaseModel):
 
 @router.put("/iron/api/meals/{meal_id}")
 async def edit_meal(
-    meal_id: str, body: EditIn, user_id: str = Depends(_verify()), store: MealStore = MEALS
+    meal_id: str, body: EditIn, user_id: str = Depends(_verify()), store: MealStore = MEALS, kitchen: Any = KITCHEN
 ) -> dict[str, Any]:
     """改份量（§118 需求 3）：改克数、油量，删一样、从库里加一样，按库重算；库里没有的那样沿用原来的估值。"""
     day = _day(body.day)
@@ -110,12 +143,13 @@ async def edit_meal(
     if not found.meal.foods:
         raise HTTPException(409, "这条是以前记的，没有逐样食物，不能改份量")
     had = {x.name: x for x in found.meal.foods}
+    mine = await _mine_by_id(kitchen, user_id, body.foods)
     lines = []
     for x in body.foods:
         if x.food_id:
-            lines.append(_from_lib(x))
-        elif x.name in had and had[x.name].est100 is not None:
-            lines.append(food_line(x.name, x.grams, x.oil, est100=had[x.name].est100))
+            lines.append(_from_lib(x, mine))
+        elif x.name in had and (est := had[x.name].est100) is not None:
+            lines.append(own_line(x.name, x.grams, est))
         elif x.name in had and had[x.name].food_id:
             lines.append(food_line(x.name, x.grams, x.oil, food_id=had[x.name].food_id))
         else:

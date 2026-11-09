@@ -113,6 +113,7 @@ scripts/start.sh
 | 第一次打开首页，有一两块写"没读到" | 第一次要建数据表，几处同时建会撞上；刷新一次就好 |
 | 配图有几张没下到 | 不影响用；以后跑 `.venv/bin/python scripts/fetch_images.py` 补 |
 | 不想等配图下载 | `scripts/start.sh --no-images` |
+| 问答输入框旁边没有话筒 | 语音模型（约 163 MB）还在后台下，下好刷新就有；没下到的话跑 `.venv/bin/python scripts/fetch_asr_model.py` 补，或用 `--no-voice` 不要它 |
 | 问 IronM 说"先填你自己的模型" | 第 5 步第 3 条 |
 | 测试连接"不行" | 看密钥有没有复制全、账户里有没有余额 |
 | 忘了密码 | 现在找不回；只能删掉 `iron-m` 文件夹重新来（以前的数据也没了） |
@@ -182,6 +183,8 @@ docker compose up -d
 |---|---|
 | `IRONM_PORT=18200` | 18090 被占了就换一个，然后打开 `http://127.0.0.1:18200/iron/` |
 | `IRONM_IMAGES=0` | 不下配图 |
+| `IRONM_VOICE=0` | 不下语音模型（问答不显示话筒） |
+| `IRONM_ASR_MODEL_URL=` | 语音模型下载慢时换一个下载地址（文件要和默认的一样） |
 | `EMAIL_SMTP_HOST=` 等几项 | 配发信邮箱，注册、找回密码会发验证码（写法见 `.env.example`） |
 | `TAVILY_API_KEY=` | IronM 能联网查资料 |
 

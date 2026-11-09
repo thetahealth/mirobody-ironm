@@ -453,6 +453,18 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 /* ---- 对话附件 ---- */
 .clip { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-2); background: var(--sunken); cursor: pointer; flex: none; align-self: flex-end; }
 .clip:focus-within { outline: 2px solid var(--accent); }
+/* 说话输入（§199）：录着时话筒变红、上面一条写正在听和秒数 */
+.clip.mic { border: 0; padding: 0; }
+.clip.mic[hidden] { display: none; }
+.clip.mic:disabled { opacity: .5; cursor: default; }
+.clip.mic.rec { background: var(--heat); color: #fff; animation: mic-pulse 1.4s ease-in-out infinite; }
+@keyframes mic-pulse { 50% { box-shadow: 0 0 0 6px var(--heat-soft); } }
+.voice-bar { display: flex; align-items: center; gap: 8px; padding: 6px 4px 0; font-size: 13px; color: var(--ink-2); flex-wrap: wrap; }
+.voice-bar[hidden] { display: none; }
+.voice-bar .voice-time { font-variant-numeric: tabular-nums; color: var(--muted); }
+.voice-bar .btn { margin-left: auto; }
+.voice-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--heat); flex: none; }
+@media (prefers-reduced-motion: reduce) { .clip.mic.rec { animation: none; } }
 .attach-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 2px 8px; }
 .attach { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 6px 8px 6px 10px; border-radius: 999px; background: var(--sunken); font-size: 13px; }
 .attach.bad { color: var(--warn); }
@@ -2627,3 +2639,157 @@ button.tag { border: 0; cursor: pointer; font: inherit; font-size: 12px; font-we
 /* 每顿吃什么的克数、千卡：14 号、不折行（前面的样式把 .num 放大到 24 号，"152 千卡"被挤成两行） */
 .tp-foods .num { font-size: 14px; line-height: 1.4; white-space: nowrap; }
 .tp-foods li { font-size: 14px; }
+
+/* ---- 成就勋章（§196） ---- */
+.medal-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 14px 6px; }
+.medal-cell { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: 0; padding: 4px 0; cursor: pointer; color: var(--ink); font: inherit; }
+.medal-cell .medal svg { display: block; overflow: visible; }
+.medal-cell.locked .medal svg { opacity: .85; }
+.medal-title { font-size: 12px; line-height: 1.3; color: var(--muted); text-align: center; }
+.medal-value { font-size: 13px; line-height: 1.3; text-align: center; }
+.medal-cell.locked .medal-value { color: var(--muted); font-weight: 500; }
+.medal-new { position: absolute; top: 0; left: calc(50% - 52px); background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 700; border-radius: 999px; padding: 0 6px; }
+.medal-bar { display: block; width: 64px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.medal-bar b { display: block; height: 100%; background: var(--accent); }
+.medal-big { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; margin-bottom: 8px; }
+.medal-big .medal svg { overflow: visible; }
+/* 贴纸勋章的流光和小黄鸡晃动；设置了减少动态效果就不动 */
+@keyframes medal-sweep { 0% { transform: translateX(-140px) rotate(20deg); } 60%, 100% { transform: translateX(170px) rotate(20deg); } }
+@keyframes medal-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.medal-sweep { transform-box: view-box; transform-origin: 100px 100px; animation: medal-sweep 3.2s ease-in-out infinite; }
+.medal-bob { animation: medal-bob 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .medal-sweep, .medal-bob { animation: none; } }
+.medal-big-value { font-size: 26px; font-weight: 800; color: var(--accent-text); }
+.medal-chart { margin: 4px 0 10px; }
+.medal-facts .row-end { white-space: normal; text-align: right; max-width: 70%; }
+.ach-head { display: flex; align-items: baseline; justify-content: space-between; margin: 6px 0 12px; }
+.ach-head h1 { margin: 0; }
+button.ach-fresh { display: flex; flex-direction: row; justify-content: flex-start; align-items: center; gap: 12px; width: 100%; min-height: 0; padding: 12px 14px; text-align: left; border: 1px solid var(--gold-line); background: var(--gold-soft); cursor: pointer; font: inherit; color: var(--ink); }
+.ach-fresh b { display: block; color: var(--gold-2); }
+.ach-fresh small { color: var(--gold); }
+.ach-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ach-empty { display: block; text-decoration: none; }
+
+/* §197 首页：今日委托里的天气一行、最下面的这周计划 */
+.quest-wx { display: flex; align-items: center; gap: 6px; margin: -2px 0 0; font-size: 13px; color: var(--ink-2); }
+.quest-wx .i { color: var(--gold-2); flex: none; }
+.quest-wx.warn, .quest-wx.warn .i { color: var(--warn); }
+.quest-wx span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.week-strip .day-strip { margin-top: 2px; }
+.week-strip .ds-day.plan:not(.on) { background: var(--sunken); }
+
+/* §198 自定义：食物、动作、方案页最下面的"自定义 · 我的…"一块 */
+.mine-block { display: grid; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.mine-block .section-head h2 { font-size: 17px; margin: 0; }
+.mine-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.mine-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.mine-card b { font-size: 14.5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mine-card small { font-size: 12px; color: var(--muted); }
+.mine-card.add { border-style: dashed; background: transparent; justify-content: center; }
+.mine-card.add .mc-ic { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--sunken); color: var(--accent); }
+.mc-cover { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; background: var(--sunken); color: var(--ink-2); }
+.mine-grid .plan-lib-card { margin: 0; min-width: 0; }
+/* 从视频生成方案（§200）：上传按钮、进度、转好的文字；11-09 做成方案页最上面的特色卡 */
+.vt-feature { display: grid; gap: 12px; margin: 4px 0 16px; padding: 16px; border-radius: 20px; border: 1.5px solid var(--accent);
+  background: linear-gradient(135deg, var(--accent-soft), var(--gold-soft)); box-shadow: 0 8px 24px var(--accent-glow); }
+.vt-head { display: flex; align-items: center; gap: 12px; }
+.vt-head h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+.vt-ic { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; flex: none; background: var(--accent); color: var(--accent-ink); }
+.vt-ic .i { width: 24px; height: 24px; }
+.vt-lede { margin: 2px 0 0; font-size: 14px; color: var(--ink-2); }
+.vt-feature .mine-card { background: var(--surface); }
+.vt-block .caption { margin: 0; }
+.vt-sub { font-size: 14px; margin: 4px 0 0; color: var(--ink-2); }
+.vt-upload { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.vt-upload label.btn { display: inline-flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+.vt-upload .vt-pick { background: var(--accent); color: var(--accent-ink); }
+.vt-upload small { width: 100%; text-align: center; }
+.vt-upload .btn.disabled { opacity: .5; pointer-events: none; }
+.vt-status { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-2); }
+.vt-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.vt-lines li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 8px; line-height: 1.6; }
+.vt-lines time { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; padding-top: 2px; }
+.vt-actions { display: flex; gap: 10px; justify-content: space-between; margin-top: 12px; }
+/* 生成的两份方案（§201） */
+.vt-card.ready { border-color: var(--accent); }
+.vt-ready { color: var(--accent) !important; font-weight: 600; }
+.vp-card { border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-top: 12px; background: var(--surface); }
+.vp-card.mine { border-color: var(--accent); }
+.vp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.vp-head h3 { margin: 0; font-size: 15.5px; min-width: 0; }
+.vp-pick { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; white-space: nowrap; flex: none; }
+.vp-body { display: grid; gap: 8px; margin-top: 6px; }
+.vp-body p { margin: 0; }
+.vp-day b { font-size: 14px; }
+.vp-items { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
+.vp-items li { display: grid; gap: 2px; line-height: 1.5; }
+.vp-move { font-weight: 600; }
+.vp-quote { color: var(--muted); font-size: 12.5px; display: flex; gap: 6px; }
+.vp-quote time { font-variant-numeric: tabular-nums; flex: none; }
+.vp-changes ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13.5px; }
+.vp-look { border-radius: 12px; padding: 10px 12px; background: var(--sunken); font-size: 13.5px; }
+.vp-look ul { margin: 4px 0 0; padding-left: 18px; }
+.mine-tag { font-style: normal; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--sunken); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
+.pm-row > span.mf-unit { display: flex; flex-direction: row; align-items: center; gap: 6px; flex: none; }
+.pm-row .mf-unit input { width: 64px; }
+.mf-unit small { color: var(--muted); }
+input.short { width: 72px; }
+.mp-day { display: grid; gap: 8px; padding: 12px; }
+.mp-day-head { display: flex; align-items: center; gap: 10px; }
+.mp-day-head b { flex: none; }
+.mp-day-head input { flex: 1; min-width: 0; }
+.mp-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.mp-item > input { min-width: 0; grid-column: 1; grid-row: 1; }
+.mp-item > .icon-btn { grid-column: 2; grid-row: 1; }
+.mp-item > .mp-sr { grid-column: 1 / -1; grid-row: 2; }
+.mp-sr { display: flex; align-items: center; gap: 4px; }
+.mp-sr input[type="number"] { width: 52px; }
+.mp-sr input.short { width: 64px; }
+.mp-sr small { color: var(--muted); white-space: nowrap; }
+
+/* §202 首页今天吃：打勾清单 + 记录框；先出克数的清单 */
+.eat2 { display: grid; gap: 4px; }
+.eat2 .eat-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.eat-title { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); text-decoration: none; }
+.eat-title h2 { margin: 0; }
+.eat-left { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.eat-left b { font-size: 22px; font-weight: 700; color: var(--ink); }
+.er-list { display: grid; }
+.er { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 48px; border-top: 1px solid var(--line); }
+.er-dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; padding: 0; background: transparent; border: 1.5px solid var(--line-hi); cursor: pointer; }
+.er-dot.on { background: rgb(18 183 106 / 14%); border-color: transparent; color: #1a7a4c; cursor: default; }
+.er-dot.ghost { border-style: dashed; opacity: .5; cursor: default; }
+.er-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; font: inherit; font-size: 15px; color: var(--ink); background: none; border: 0; padding: 10px 0; cursor: pointer; }
+.er.planned .er-name, .er.none .er-name, .er.planned .er-kcal { color: var(--muted); }
+.er-kcal { font-size: 14px; white-space: nowrap; }
+.ec-wrap { display: grid; gap: 6px; margin-top: 6px; }
+.ec { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line-hi); border-radius: 26px; padding: 5px 5px 5px 8px; background: var(--surface); }
+.ec input[type="text"] { flex: 1; min-width: 0; border: 0; background: transparent; padding: 8px 4px; font: inherit; font-size: 15px; box-shadow: none; }
+.ec input[type="text"]:focus { outline: none; }
+.ec-btn { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; flex: none; border: 0; padding: 0; background: var(--sunken); color: var(--accent); cursor: pointer; align-self: center; }
+.ec-btn[hidden] { display: none; }
+.ec-btn.go { background: var(--accent); color: var(--accent-ink); }
+.ec-btn:focus-within { outline: 2px solid var(--accent); }
+.ec-thumb { position: relative; width: 34px; height: 34px; flex: none; }
+.ec-thumb[hidden] { display: none; }
+.ec-thumb img { width: 34px; height: 34px; object-fit: cover; border-radius: 8px; display: block; }
+.ec-thumb button { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; background: var(--ink); color: #fff; cursor: pointer; }
+.ec-msg:empty { display: none; }
+.ec-msg { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.mr-top { display: flex; align-items: center; gap: 10px; }
+.mr-photo { width: 56px; height: 56px; object-fit: cover; border-radius: 10px; flex: none; }
+.mr-said { flex: 1; min-width: 0; background: var(--sunken); border-radius: 10px; padding: 8px 10px; font-size: 14px; }
+.mr-list { display: grid; }
+.mr-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 64px 28px; align-items: center; gap: 8px; min-height: 50px; border-top: 1px solid var(--line); }
+.mr-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+.mr-step { display: flex; align-items: center; gap: 6px; }
+.mr-b { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line-hi); background: transparent; color: var(--ink); font: inherit; font-size: 16px; line-height: 1; padding: 0; cursor: pointer; }
+.mr-gbox { display: flex; flex-direction: row; align-items: center; gap: 3px; margin: 0; }
+.mr-gbox small { color: var(--muted); font-size: 12px; }
+input.mr-g { width: 52px; padding: 4px 2px; text-align: center; font-size: 15px; }
+.mr-kcal { text-align: right; font-size: 14px; white-space: nowrap; }
+.mr-del { width: 28px; height: 28px; }
+.mr-add { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; color: var(--accent); }
+.mr-add input { flex: 1; min-width: 0; }
+.mr-total { display: flex; align-items: baseline; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 10px; }
+.mr-total b { font-size: 18px; }

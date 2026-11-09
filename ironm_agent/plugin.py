@@ -226,10 +226,14 @@ BODY_KINDS = (
     "weight",
     "body_fat",
     "waist",
+    "hip",
+    "chest",
+    "arm",
+    "thigh",
     "resting_hr",
     "systolic",
     "diastolic",
-)  # 对话里能记的读数
+)  # 对话里能记的读数（§196 加了四项围度）
 MEAL_KINDS = ("早餐", "午餐", "晚餐", "加餐", "夜宵", "练前", "练后")
 MAX_FOODS = 12  # 一餐最多几样（同饮食页）
 
@@ -1031,6 +1035,23 @@ class IronMAgent:
             _log.warning("diet plan unavailable: error_type=%s", type(e).__name__)
             return None
         return totals, name
+
+    async def _badges_line(self, user_id: str, snapshot: Snapshot) -> str:
+        """档案里最近 7 天新拿到的勋章（§196）；读不到时为空。"""
+        from ironm_agent.achievements import compute, recent_line
+        from ironm_agent.web_achievements import gather
+
+        class _NoPhotos:  # 作答时不看打卡照（只影响"前后对比"那枚）
+            async def having(self, *_: Any) -> set[str]:
+                return set()
+
+        try:
+            inp = await gather(user_id, self._training_store(), self._meals_store(), _NoPhotos(), self._goal_store(),
+                               self._readings_store(), today=snapshot.today, snapshot=snapshot)  # fmt: skip
+            return recent_line(compute(inp), snapshot.today)
+        except Exception as e:
+            _log.warning("badges unavailable: error_type=%s", type(e).__name__)
+            return ""
 
     async def _diet_plan_line(self, user_id: str) -> str:
         """档案里饮食计划那一行（§190）；读不到时为空。"""
@@ -2070,7 +2091,7 @@ class IronMAgent:
                 or isinstance(said, bool)
             ):
                 return Outcome(
-                    False, "要写哪一项（体重、体脂率、腰围、静息心率、血压）和他说的数。", "format"
+                    False, "要写哪一项（体重、体脂率、腰围、臀围、胸围、上臂围、大腿围、静息心率、血压）和他说的数。", "format"
                 )
             raw = f"{float(said):g}"
             if raw not in digits(
@@ -2696,6 +2717,7 @@ class IronMAgent:
             illness=state, day=today_lines,
             insights=insight_lines, target=target, sore=sore_parts,
             meals=await self._meals_line(user_id, snapshot), diet_plan=await self._diet_plan_line(user_id),
+            badges=await self._badges_line(user_id, snapshot),
         )  # fmt: skip
         current = await wx if wx is not None else None
         if current is not None:

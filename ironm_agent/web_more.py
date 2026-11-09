@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ironm_agent import weather
 from ironm_agent.exercises import library
+from ironm_agent.foods import by_id as food_by_id
 from ironm_agent.meals import (
     MAX_PHOTO_BYTES,
     MEAL_KINDS,
@@ -31,6 +32,8 @@ from ironm_agent.meals import (
     MealStore,
     default_meals,
     estimate,
+    food_line,
+    meal_from,
     preset_meal,
     presets,
     recommend,
@@ -544,17 +547,28 @@ async def add_meal(
     store: MealStore = MEALS,
 ) -> dict[str, Any]:
     """拍照加描述记一餐：营养估算热量和三大营养素（写明是估算）。"""
+    meal, data, mime = await _estimate_meal(user_id, said, kind, photo)
+    _log.info("meal added: photo=%s", data is not None)
+    return await _save_meal(store, user_id, meal, data, mime)
+
+
+async def _read_photo(photo: UploadFile | None) -> tuple[bytes | None, str]:
+    if photo is None or not photo.filename:
+        return None, ""
+    mime = photo.content_type or ""
+    if mime not in PHOTO_TYPES:
+        raise HTTPException(415, "照片只支持 JPG、PNG、WebP")
+    data = await photo.read(MAX_PHOTO_BYTES + 1)
+    if len(data) > MAX_PHOTO_BYTES:
+        raise HTTPException(413, "照片不能超过 5MB")
+    return data, mime
+
+
+async def _estimate_meal(user_id: str, said: str, kind: str, photo: UploadFile | None) -> tuple[Meal, bytes | None, str]:
+    """照片加一句 → 估出来的一餐（不存）。"""
     meal_kind = _kind(kind)
     said = said.strip()[:120]
-    data: bytes | None = None
-    mime = ""
-    if photo is not None and photo.filename:
-        mime = photo.content_type or ""
-        if mime not in PHOTO_TYPES:
-            raise HTTPException(415, "照片只支持 JPG、PNG、WebP")
-        data = await photo.read(MAX_PHOTO_BYTES + 1)
-        if len(data) > MAX_PHOTO_BYTES:
-            raise HTTPException(413, "照片不能超过 5MB")
+    data, mime = await _read_photo(photo)
     if not said and data is None:
         raise HTTPException(422, "拍张照片或写一句描述")
     import base64
@@ -571,8 +585,87 @@ async def add_meal(
     meal = await estimate(llm, said, meal_kind, image)
     if meal is None:
         raise HTTPException(503, OWN_FAILED)
-    _log.info("meal added: photo=%s", data is not None)
-    return await _save_meal(store, user_id, meal, data, mime)
+    return meal, data, mime
+
+
+@router.post("/iron/api/meals/estimate")
+async def estimate_meal(
+    said: str = Form(""),
+    kind: str = Form("午餐"),
+    photo: UploadFile | None = PHOTO,
+    user_id: str = Depends(_verify()),
+) -> dict[str, Any]:
+    """先出克数（§202）：认出这一餐有哪几样、各多少克，不存；他调好了再用 /meals/confirm 记下。"""
+    meal, data, _ = await _estimate_meal(user_id, said, kind, photo)
+    _log.info("meal estimated: photo=%s lines=%d", data is not None, len(meal.foods))
+    return {"meal": meal.model_dump(mode="json")}
+
+
+class ConfirmLine(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    name: str = Field(min_length=1, max_length=30)
+    grams: float = Field(gt=0, le=3000)
+    oil: str = "正常"
+    food_id: str | None = Field(default=None, max_length=40)
+    est100: Macros | None = None
+
+
+class ConfirmIn(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    name: str = Field(default="", max_length=40)
+    foods: list[ConfirmLine] = Field(default_factory=list, max_length=12)
+    macros: Macros | None = None  # 模型没给逐样食物时：整餐的估值
+    confidence: str = Field(default="", max_length=4)
+    note: str = Field(default="", max_length=120)
+
+
+@router.post("/iron/api/meals/confirm")
+async def confirm_meal(
+    meal: str = Form(...),
+    kind: str = Form("午餐"),
+    said: str = Form(""),
+    photo: UploadFile | None = PHOTO,
+    user_id: str = Depends(_verify()),
+    store: MealStore = MEALS,
+    kitchen: Any = KITCHEN,
+) -> dict[str, Any]:
+    """记下调好克数的这一餐（§202）：营养按克数由这里重算——食物库的按库，我的食物按自己填的，库里没有的按估值。"""
+    from ironm_agent.web_diet import own_line
+
+    try:
+        body = ConfirmIn.model_validate_json(meal)
+    except ValueError:
+        raise HTTPException(422, "这一餐的内容不对，重新估一次") from None
+    meal_kind = _kind(kind)
+    data, mime = await _read_photo(photo)
+    mine: dict[str, Any] = {}
+    if any((x.food_id or "").startswith("my-") for x in body.foods):
+        from ironm_agent.mine import FOOD, load
+
+        mine = {f.id: f for f in await load(kitchen, user_id, FOOD)}
+    lib = food_by_id()
+    lines = []
+    for x in body.foods:
+        if x.food_id and x.food_id in mine:
+            lines.append(own_line(mine[x.food_id].name, x.grams, mine[x.food_id].macros()))
+        elif x.food_id and x.food_id in lib:
+            lines.append(food_line(x.name, x.grams, x.oil, food_id=x.food_id))
+        elif x.est100 is not None:
+            lines.append(own_line(x.name, x.grams, x.est100))
+        else:
+            raise HTTPException(422, f"「{x.name}」算不出营养，删掉或从库里加")
+    extra = {"confidence": body.confidence, "said": said.strip()[:120]}
+    if lines:
+        built = meal_from(meal_kind, body.name or "、".join(x.name for x in lines), lines, note=body.note, **extra)
+    elif body.macros is not None:
+        m, _ = body.macros.reconciled()
+        built = Meal(kind=meal_kind, name=body.name or "这一餐", macros=m.rounded(), note=body.note, **extra)
+    else:
+        raise HTTPException(422, "至少留一样")
+    _log.info("meal confirmed: photo=%s lines=%d", data is not None, len(lines))
+    return await _save_meal(store, user_id, built, data, mime)
 
 
 class PresetIn(BaseModel):

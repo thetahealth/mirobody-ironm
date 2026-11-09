@@ -764,6 +764,11 @@ from ironm_agent.web_user_models import router as _my_model  # noqa: E402
 
 router.include_router(_my_model)
 
+# 成就勋章（spec [2026-11-09] §196）
+from ironm_agent.web_achievements import router as _achievements  # noqa: E402
+
+router.include_router(_achievements)
+
 # 图鉴里的方案库（spec [2026-11-05] §161）
 from ironm_agent.web_atlas import router as _atlas  # noqa: E402
 
@@ -783,3 +788,23 @@ router.include_router(_password)
 from ironm_agent.web_account import router as _account  # noqa: E402
 
 router.include_router(_account)
+
+# 问答语音输入（spec [2026-10-23] §199）
+from ironm_agent.web_voice import router as _voice  # noqa: E402
+
+router.include_router(_voice)
+
+# 自定义：我的食物、我的动作、我的方案（spec [2026-11-09] §198）
+from ironm_agent.web_mine import router as _mine  # noqa: E402
+
+router.include_router(_mine)
+
+# 视频出方案第一步：视频转文字（spec [2026-10-23] §200）
+from ironm_agent.web_video import router as _video  # noqa: E402
+
+router.include_router(_video)
+
+# 视频出方案第二步：生成原博主方案和按你改的方案、选存不存（spec [2026-10-23] §201）
+from ironm_agent.web_video_plan import router as _video_plan  # noqa: E402
+
+router.include_router(_video_plan)

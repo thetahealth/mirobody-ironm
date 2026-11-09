@@ -29,7 +29,7 @@ serve)
   done
   # .env 里写了空值的可选设置当作没写
   for name in EMAIL_SMTP_HOST EMAIL_SMTP_PORT EMAIL_SMTP_USER EMAIL_SMTP_PASS EMAIL_FROM EMAIL_FROM_NAME \
-      TAVILY_API_KEY IRONM_ADMINS HTTP_PROXY HTTPS_PROXY; do
+      TAVILY_API_KEY IRONM_ADMINS HTTP_PROXY HTTPS_PROXY IRONM_ASR_MODEL_URL; do
     [ -n "${!name:-}" ] || unset "$name"
   done
   JWT_KEY="$(cat "$JWT_SECRET")"
@@ -52,6 +52,11 @@ serve)
           || echo "动作动图没合成，不影响使用"
       fi
     ) &
+  fi
+
+  if [ "${IRONM_VOICE:-1}" = 1 ]; then
+    # 问答语音输入的语音模型（§199，约 163 MB）：没有才下，下好之前网页不显示话筒
+    ( python scripts/fetch_asr_model.py > /tmp/fetch-asr.log 2>&1 || echo "语音模型没下到，下次启动再试；不影响打字" ) &
   fi
 
   echo "IronM 起来后用浏览器打开：http://127.0.0.1:${IRONM_PORT:-18090}/iron/"

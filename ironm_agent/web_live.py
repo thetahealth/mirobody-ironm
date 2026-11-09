@@ -26,7 +26,16 @@ from ironm_agent.live import (
 from ironm_agent.memory_store import MemoryStore
 from ironm_agent.training import SORE_PARTS, Feeling, Plan, TrainingStore, WorkoutLog
 from ironm_agent.web import _verify, after_workout, memory_store, record_sore, training_store
-from ironm_agent.web_more import DAY, FEEL, ILLNESS, PAIN, body_later, review_today, today_edits
+from ironm_agent.web_more import (
+    DAY,
+    FEEL,
+    ILLNESS,
+    KITCHEN,
+    PAIN,
+    body_later,
+    review_today,
+    today_edits,
+)
 
 _log = logging.getLogger("ironm_agent.live")
 router = APIRouter()
@@ -199,11 +208,13 @@ async def start_live(
     store: TrainingStore = TRAINING,
     memory: MemoryStore = STORE,
     day: Any = DAY,
+    kitchen: Any = KITCHEN,
 ) -> dict[str, Any]:
     from ironm_agent.plan_edit import with_today
     from ironm_agent.special import no_heavier
 
     now = datetime.now()
+    modes = await _my_modes(user_id, kitchen)
     plan, logs = await _context(user_id, store)
     if plan is not None:  # 临时调整（§163）、计划页"只改今天"的按改过的（§106）
         from ironm_agent.plan_layers import load as load_temps
@@ -217,7 +228,7 @@ async def start_live(
     want = plan is not None and not body.free and (body.today_plan or not trained)
     today = plan.session_on(date.today()) if want else None
     try:
-        picked = [known(x) for x in body.exercises]
+        picked = [_known(x, modes) for x in body.exercises]
     except LiveError as err:
         raise HTTPException(422, str(err)) from None
     live = await lives.get(user_id)
@@ -232,7 +243,7 @@ async def start_live(
             return _out(live, now)
         rests = await lives.rests(user_id)
         decided = await _decided(user_id)
-        more = [new_item(n, plan, logs, rests, decided) for n in names]
+        more = [new_item(n, plan, logs, rests, decided, modes.get(n)) for n in names]
         update: dict[str, Any] = {"items": [*live.items, *more][:15], "updated": now}
         if joins and today is not None:
             update["session"] = today.name
@@ -247,13 +258,30 @@ async def start_live(
         session = today.name
         names = [*picked, *(x.exercise for x in today.items)]  # 库里没有的也照加（§123）
     decided = await _decided(user_id)
-    items = [new_item(n, plan, logs, rests, decided) for n in dict.fromkeys(names)][:15]
+    items = [new_item(n, plan, logs, rests, decided, modes.get(n)) for n in dict.fromkeys(names)][:15]
     live = fresh(session, items, now).model_copy(
         update={"no_heavier": no_heavier(await _special(user_id, memory))}
     )
     await lives.save(user_id, live)
     _log.info("live started: exercises=%d", len(items))
     return _out(live, now)
+
+
+async def _my_modes(user_id: str, kitchen: Any) -> dict[str, str]:
+    """我的动作和它们的记法（§198）；读不到当作没有。"""
+    from ironm_agent.mine import MOVE, load, modes_of
+
+    try:
+        return dict(modes_of(await load(kitchen, user_id, MOVE)))
+    except Exception as e:
+        _log.warning("my moves unavailable: error_type=%s", type(e).__name__)
+        return {}
+
+
+def _known(name: str, modes: dict[str, str]) -> str:
+    """动作库里的，或者他自己加的动作（名字要一字不差）。"""
+    text = " ".join(str(name).split())
+    return text if text in modes else known(text)
 
 
 async def _coach_ratio(user_id: str, plan: Plan) -> Plan:
@@ -271,7 +299,7 @@ async def _coach_ratio(user_id: str, plan: Plan) -> Plan:
 
 @router.put("/iron/api/live")
 async def save_live(
-    body: SaveIn, user_id: str = Depends(_verify()), lives: LiveStore = LIVE
+    body: SaveIn, user_id: str = Depends(_verify()), lives: LiveStore = LIVE, kitchen: Any = KITCHEN
 ) -> dict[str, Any]:
     """每改一处都存：整份覆盖。改过组间休息秒数的动作，下次照用。"""
     now = datetime.now()
@@ -279,10 +307,13 @@ async def save_live(
     if live is None or live.id != body.id:
         raise HTTPException(409, "这次训练已经结束或换了一次，请刷新")
     before = {x.exercise: x.rest for x in live.items}
+    modes: dict[str, str] | None = None
     for it in body.items:
         if it.exercise not in before:  # 原来就在里面的不再查：计划带进来的可能不在动作库（§123）
+            if modes is None:
+                modes = await _my_modes(user_id, kitchen)
             try:
-                it.exercise = known(it.exercise)
+                it.exercise = _known(it.exercise, modes)
             except LiveError as err:
                 raise HTTPException(422, str(err)) from None
         if it.exercise in before and it.rest != before[it.exercise]:
@@ -298,20 +329,22 @@ async def add_live_item(
     user_id: str = Depends(_verify()),
     lives: LiveStore = LIVE,
     store: TrainingStore = TRAINING,
+    kitchen: Any = KITCHEN,
 ) -> dict[str, Any]:
-    """加一个动作：和开始时一样预先填好重量、次数和休息秒数。"""
+    """加一个动作：和开始时一样预先填好重量、次数和休息秒数；我的动作也能加（§198）。"""
     now = datetime.now()
     live = await lives.get(user_id)
     if live is None:
         raise HTTPException(409, "还没有开始训练")
+    modes = await _my_modes(user_id, kitchen)
     try:
-        name = known(body.exercise)
+        name = _known(body.exercise, modes)
     except LiveError as err:
         raise HTTPException(422, str(err)) from None
     if len(live.items) >= 15:
         raise HTTPException(422, "一次最多 15 个动作")
     plan, logs = await _context(user_id, store)
-    item = new_item(name, plan, logs, await lives.rests(user_id), await _decided(user_id))
+    item = new_item(name, plan, logs, await lives.rests(user_id), await _decided(user_id), modes.get(name))
     live = live.model_copy(update={"items": [*live.items, item], "updated": now})
     await lives.save(user_id, live)
     return _out(live, now)

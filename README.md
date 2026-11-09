@@ -84,6 +84,7 @@ Real conversations from a two-week simulation test. The model is DeepSeek and th
 ## ✨ What it does
 
 ### 🏋️ Training
+- 🎬 **Train along with creators**: upload a video where a fitness creator explains their workout. IronM first writes up the creator's original plan (each exercise tagged with the second it's mentioned and the exact words; anything not said is marked "not said"), then adapts a copy to your equipment, injuries and time. You see both side by side and choose what to keep
 - 📋 **Plan templates**: 24 training plans (beginner full body, upper/lower, push/pull/legs, bro split, dumbbells at home, kettlebell, bodyweight progressions, glutes and legs, big three, strength plus running, coming back after a break, hotel workouts, 60+…), adapted to your level, days, equipment, injuries and time
 - 🌅 **A daily check**: decides how you train today from your sleep, heart rate and what you've told it
 - 🧳 **Temporary changes**: travel, illness or a deload week, with start and end dates; your normal plan comes back automatically
@@ -98,6 +99,7 @@ Real conversations from a two-week simulation test. The model is DeepSeek and th
 - 🧮 **Built around you**: say "I mostly eat takeout and don't eat pork", and IronM picks four meals a day from the recipes while the system sets the portions. Daily calories land within 8% of your target, protein is covered, and nothing you avoid is included. Nothing changes until you confirm
 - 🎯 **Follows your goal**: switch from fat loss to muscle gain and IronM checks whether your diet plan still fits the new goal; if not, it offers a card to switch plans
 - 🥚 **Foods and recipes**: 159 foods, 81 recipes (home cooking, packed lunches, takeout and canteen, vegetarian, weight gain), 12 common takeout and canteen meals
+- ✏️ **Your own entries**: your own foods (copied from the label), exercises and plans, usable for logging meals, workouts and planning
 - 🔥 **Calorie target**: based on your basal metabolic rate. Changes are decided by IronM from your records, with hard limits in code: never below your BMR, at most 300 kcal per change, at most 500 kcal in total
 
 ### ❤️ Health data
@@ -105,6 +107,8 @@ Real conversations from a two-week simulation test. The model is DeepSeek and th
 - ⌚ **Watches and Apple Health**: import your data; every metric is compared with your own usual
 
 ### 🧩 Also
+- 🎙️ **Ask by voice**: tap the mic next to the input box and speak; the text fills in and you can edit it before sending. Speech is transcribed on the server with a self-hosted model: free, and the recording is deleted right after
+- 🏅 **Badges**: lightest week, squatting 1.5× your body weight, 8 weeks in a row… It only rewards what you've done and never nags
 - 🧠 **Long-term memory**: remembers your injuries, equipment, schedule and preferences. If it gets something wrong, delete it under "Me"
 - 📚 **Sources**: an evidence base of 125 entries: Chinese dietary guidelines, China's National Health Commission guidance, ACSM, ISSN, NEJM randomised trials… Ask why and it tells you the source
 - 🛡️ **Safety floor**: emergencies, critical values, pregnancy, high blood pressure and injuries are handled by hard-coded rules
@@ -119,10 +123,10 @@ Five tabs at the bottom: Home, IronM, Library, Records, Me. The mobile app in pr
 
 | Page | What's there |
 |---|---|
-| 🏠 Home | What to train today, whether it was adjusted, start a workout, quick check-in; how many calories are left today, log by photo or text; trending on the leaderboard |
-| 🐧 IronM | Chat; preview cards for plan changes, meals and goal changes; messages it sends you; weekly report; photo upload |
-| 📖 Library | Exercises, equipment, foods and recipes, training plan library, diet plan library |
-| 📊 Records | Sessions this week, total time, PRs, compared with last week; body data trends; training timeline and check-in photos; achievements |
+| 🏠 Home | What to train today (with the weather), whether it was adjusted, start a workout, quick check-in; how many calories are left today, log by photo or text; this week's plan; trending on the leaderboard |
+| 🐧 IronM | Chat by typing or voice; preview cards for plan changes, meals and goal changes; messages it sends you; weekly report; photo upload |
+| 📖 Library | Exercises, equipment, foods and recipes, training plan library (train along with creators at the top), diet plan library; your own entries at the bottom of each page |
+| 📊 Records | Sessions this week, total time, PRs, compared with last week; body data trends; training timeline and check-in photos; badge wall |
 | 👤 Me | Profile and goal, equipment and place, city and weather, body data, things it remembers, data import, model settings, account and privacy |
 | 📋 Training plan | The week's schedule; swap exercises, change sets and reps, reorder; next-session targets for each exercise |
 | ⏱️ Workout | Set-by-set logging, rest timer, add a set, stopwatch |
@@ -172,7 +176,7 @@ git clone https://github.com/thetahealth/mirobody-ironm.git iron-m && cd iron-m
 scripts/start.sh
 ```
 
-The first run takes ten-plus minutes to set up the environment and download images; after that it starts in seconds. Then:
+The first run takes ten-plus minutes to set up the environment and download images and the speech model; after that it starts in seconds. Then:
 
 1. Open <http://127.0.0.1:18090/iron/>, sign up, and enter your height, date of birth and weight
 2. Under "Me → Model and API", enter your key
@@ -182,7 +186,7 @@ For port conflicts, slow downloads in mainland China, updating and uninstalling,
 
 ## 🧠 How it works
 
-IronM is a single agent: one AI answers every question. Depending on the topic, it first loads the guide for that kind of question (building plans, exercise coaching, nutrition, whether to train today, pain and injuries, reading data, logging and reviews, onboarding; 8 in all), then looks things up in the plan libraries, exercise library, food database, evidence base and your data. It also works when you're not around: every day it assesses how you should train, after each workout it sets next session's targets, once a week it reviews your progress, and after each chat it sorts out what to remember.
+IronM is a single agent: one AI answers every question. Depending on the topic, it first loads the guide for that kind of question (building plans, exercise coaching, nutrition, whether to train today, pain and injuries, reading data, logging and reviews, onboarding; 8 in all, plus one for training along with creators), then looks things up in the plan libraries, exercise library, food database, evidence base and your data. It also works when you're not around: every day it assesses how you should train, after each workout it sets next session's targets, once a week it reviews your progress, and after each chat it sorts out what to remember.
 
 The split is simple: **judgement goes to the AI; numbers and safety limits go to code.** Calories, BMR, macros and how far you are from your usual are all calculated in code. Emergencies, critical values, special groups, injuries and the calorie floor are guarded by code. If a number in the AI's answer doesn't match its source, the answer is sent back to be rewritten. If the AI fails, IronM doesn't quietly fall back to rules that decide for you; it tells you plainly that something went wrong and that you can try again.
 
@@ -190,11 +194,11 @@ The backend is Python 3.13 + FastAPI + PostgreSQL (pgvector), running as a plugi
 
 ## ❓ FAQ
 
-**💰 Does it cost anything?** IronM is free. Model costs go through your own account; with DeepSeek, a question costs about one fen (well under one US cent).
+**💰 Does it cost anything?** IronM is free. Model costs go through your own account; with DeepSeek, a question costs about one fen (well under one US cent), and turning a creator's video into plans costs a few fen. Speech and video transcription run on a self-hosted model on the server and cost nothing.
 
 **📱 Can I use it on my phone?** Yes: open <https://test-ironm.mirobody.ai> in your phone's browser; the pages are designed for phone screens. A native app is in progress (the code is in `app/`; it hasn't been released yet).
 
-**🔒 Where is my data?** On the online version, it's stored in the test server's database, with sensitive content encrypted. If you run it yourself, it stays in a database on your own computer. Either way, only your questions and the photos you take are sent to the model provider you configured, and the weather lookup only sends coordinates rounded to about 1 km.
+**🔒 Where is my data?** On the online version, it's stored in the test server's database, with sensitive content encrypted. If you run it yourself, it stays in a database on your own computer. Either way, only your questions and the photos you take are sent to the model provider you configured, and the weather lookup only sends coordinates rounded to about 1 km. Voice and videos are transcribed on the server and deleted right after; a video's text is only used to make the plans and is deleted once you choose (after 7 days at most).
 
 **🩺 Can it replace a coach or doctor?** No. Treat it as advice only. If you have a chronic condition, are pregnant or are injured, check with a doctor before you start. If you get chest pain, dizziness or shortness of breath while exercising, stop and get medical help right away.
 
@@ -210,7 +214,7 @@ make run                               # http://127.0.0.1:18090
 
 ## 🙏 Acknowledgements
 
-The health data foundation comes from [mirobody](https://github.com/thetahealth/mirobody). Exercise images come from [wger](https://wger.de) and [Everkinetic](https://github.com/everkinetic/data) (CC BY-SA), food photos from Unsplash and Pexels, and leaderboard images from Wikimedia Commons. Authors and licences are recorded in `ironm_agent/*_images.yaml` and credited in the app. Images aren't stored in the repository; they're downloaded from that list at install time. Nutrition data draws on USDA FoodData Central.
+The health data foundation comes from [mirobody](https://github.com/thetahealth/mirobody). Exercise images come from [wger](https://wger.de) and [Everkinetic](https://github.com/everkinetic/data) (CC BY-SA), food photos from Unsplash and Pexels, and leaderboard images from Wikimedia Commons. Authors and licences are recorded in `ironm_agent/*_images.yaml` and credited in the app. Images aren't stored in the repository; they're downloaded from that list at install time. Nutrition data draws on USDA FoodData Central. Speech and video transcription uses [SenseVoice-Small](https://github.com/FunAudioLLM/SenseVoice) from Alibaba Tongyi Lab (FunASR model licence), run with [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx); audio is extracted from videos with [PyAV](https://github.com/PyAV-Org/PyAV) (bundling FFmpeg libraries).
 
 ## 🤝 Contributing
 
